@@ -40,7 +40,7 @@ echo "ANTHROPIC_API_KEY=sk-ant-..." > .env
 docker compose up --build
 ```
 
-Open **http://localhost:3000** in your browser.
+Open **http://localhost:3001** in your browser.
 
 State auto-saves to `./data/state.json` on the host so it survives container restarts.
 
@@ -181,9 +181,12 @@ AZURE_OPENAI_DEPLOYMENT=gpt-4o
 You can configure keys for multiple providers simultaneously and switch between them in the UI without restarting. Rebuild the container after adding new keys (`docker compose up --build`).
 
 ### Ports
-Default port is `3000`. To use a different port:
-```bash
-PORT=8080 docker compose up
+Default port is `3001`. To use a different port, update both the `PORT` env var and the port mapping in `docker-compose.yml`:
+```yaml
+ports:
+  - "8080:8080"
+environment:
+  - PORT=8080
 ```
 
 ### State persistence
