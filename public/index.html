@@ -1,0 +1,2746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Security Maturity Assessment</title>
+<style>
+/* ── Reset & base ─────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #f8fafc;
+  color: #1e293b;
+  font-size: 14px;
+  min-height: 100vh;
+}
+
+/* ── Top nav ──────────────────────────────────────────────── */
+.topnav {
+  background: #1e1b4b;
+  color: white;
+  padding: 0 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
+  gap: 16px;
+}
+.topnav-left { display: flex; align-items: center; gap: 14px; }
+.topnav-logo { max-height: 28px; max-width: 160px; width: auto; height: auto; display: block; object-fit: contain; }
+.topnav-logo-fallback {
+  font-size: 18px; font-weight: 800; letter-spacing: -0.5px; color: white;
+  display: none;
+}
+.topnav-divider { width: 1px; height: 24px; background: rgba(255,255,255,0.2); }
+.topnav-title { font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.85); }
+.topnav-right { display: flex; align-items: center; gap: 8px; }
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; border: none; transition: all 0.15s; text-decoration: none; }
+.btn-ghost { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); }
+.btn-ghost:hover { background: rgba(255,255,255,0.18); }
+.btn-primary { background: #7c3aed; color: white; }
+.btn-primary:hover { background: #6d28d9; }
+.btn-outline { background: white; color: #374151; border: 1px solid #d1d5db; }
+.btn-outline:hover { background: #f9fafb; }
+.btn-danger { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+.btn-danger:hover { background: #fee2e2; }
+
+/* ── Meta bar ─────────────────────────────────────────────── */
+.metabar {
+  background: white;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 10px 28px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.meta-field { display: flex; align-items: center; gap: 8px; }
+.meta-field label { font-size: 11px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap; }
+.meta-field input, .meta-field select {
+  font-size: 13px; padding: 5px 10px; border: 1px solid #e2e8f0; border-radius: 5px;
+  background: #f8fafc; color: #1e293b; outline: none;
+}
+.meta-field input:focus, .meta-field select:focus { border-color: #7c3aed; background: white; }
+.meta-field input[type="text"] { width: 200px; }
+.meta-sep { width: 1px; height: 24px; background: #e2e8f0; }
+.save-indicator { font-size: 11px; color: #10b981; font-weight: 500; opacity: 0; transition: opacity 0.3s; }
+.save-indicator.show { opacity: 1; }
+
+/* ── Score banner ─────────────────────────────────────────── */
+.score-banner {
+  background: white;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 14px 28px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.score-big { display: flex; align-items: baseline; gap: 4px; }
+.score-big .num { font-size: 36px; font-weight: 800; color: #7c3aed; line-height: 1; }
+.score-big .denom { font-size: 16px; color: #94a3b8; }
+.score-label { font-size: 11px; color: #64748b; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
+.posture-pill { padding: 5px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; }
+.posture-none { background: #f1f5f9; color: #475569; }
+.posture-critical { background: #fee2e2; color: #991b1b; }
+.posture-developing { background: #fef3c7; color: #92400e; }
+.posture-managed { background: #d1fae5; color: #065f46; }
+.posture-optimized { background: #a7f3d0; color: #064e3b; }
+.progress-wrap { flex: 1; min-width: 180px; }
+.progress-bar-bg { height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden; }
+.progress-bar-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, #7c3aed, #a855f7); transition: width 0.4s ease; }
+.domain-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+.dpill { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 12px; font-size: 11px; font-weight: 500; }
+.dpill-1 { background: #fee2e2; color: #991b1b; }
+.dpill-2 { background: #fef3c7; color: #92400e; }
+.dpill-3 { background: #dbeafe; color: #1e40af; }
+.dpill-4 { background: #ede9fe; color: #5b21b6; }
+.dpill-5 { background: #d1fae5; color: #065f46; }
+.dpill-na { background: #f1f5f9; color: #94a3b8; }
+
+/* ── Tab bar ──────────────────────────────────────────────── */
+.tabs { display: flex; gap: 0; border-bottom: 2px solid #e2e8f0; padding: 0 28px; background: white; }
+.tab { padding: 11px 18px; font-size: 13px; font-weight: 500; color: #64748b; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.15s; }
+.tab:hover { color: #1e293b; }
+.tab.active { color: #7c3aed; border-bottom-color: #7c3aed; font-weight: 600; }
+
+/* ── Main content ─────────────────────────────────────────── */
+.content { padding: 20px 28px; }
+
+/* ── Matrix table ─────────────────────────────────────────── */
+.table-wrap { overflow-x: auto; background: white; border-radius: 8px; border: 1px solid #e2e8f0; }
+table { width: 100%; border-collapse: collapse; min-width: 880px; }
+thead th {
+  padding: 10px 12px; text-align: left; font-weight: 700; font-size: 10.5px;
+  text-transform: uppercase; letter-spacing: 0.05em; color: #475569;
+  border-bottom: 2px solid #e2e8f0; background: #f8fafc; white-space: nowrap;
+}
+thead th:first-child { width: 180px; }
+thead th.level-h { text-align: center; width: 150px; }
+thead th.fw-h { text-align: center; width: 130px; }
+thead th.score-h { text-align: center; width: 64px; }
+
+tbody tr { cursor: pointer; transition: background 0.1s; border-bottom: 1px solid #f0f4f8; }
+tbody tr:hover { background: #faf5ff; }
+tbody tr.expanded { background: #f5f0ff; }
+
+td { padding: 10px 12px; vertical-align: middle; }
+.domain-cell { font-weight: 600; font-size: 13px; }
+.domain-cell .icon { font-size: 14px; margin-right: 5px; }
+.domain-cell .sub { font-weight: 400; font-size: 11px; color: #94a3b8; display: block; margin-top: 2px; }
+
+.level-cell { text-align: center; vertical-align: middle; }
+.lbadge {
+  display: inline-block; border-radius: 5px; padding: 5px 8px;
+  font-size: 11px; font-weight: 500; line-height: 1.4; text-align: left;
+  max-width: 142px; cursor: pointer; transition: outline 0.1s; vertical-align: middle;
+}
+.l1 { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+.l2 { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
+.l3 { background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; }
+.l4 { background: #ede9fe; color: #5b21b6; border: 1px solid #c4b5fd; font-weight: 600; }
+.l5 { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; font-weight: 600; }
+.lbadge.selected { outline: 2px solid #7c3aed; outline-offset: 2px; }
+
+.fw-cell { text-align: center; vertical-align: middle; }
+.fw-tags { display: flex; flex-wrap: wrap; gap: 3px; justify-content: center; }
+.fwtag { display: inline-block; padding: 2px 6px; border-radius: 3px; font-size: 9.5px; font-weight: 600; }
+.fwtag-o { background: #dbeafe; color: #1d4ed8; }
+.fwtag-n { background: #ede9fe; color: #5b21b6; }
+.fwtag-i { background: #fce7f3; color: #9d174d; }
+
+.score-cell { text-align: center; vertical-align: middle; }
+.spill {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px; border-radius: 50%; font-weight: 700; font-size: 13px; border: 2px solid;
+}
+.sp-na { background: #f1f5f9; color: #94a3b8; border-color: #e2e8f0; }
+.sp-1 { background: #fee2e2; color: #991b1b; border-color: #fca5a5; }
+.sp-2 { background: #fef3c7; color: #92400e; border-color: #fcd34d; }
+.sp-3 { background: #dbeafe; color: #1e40af; border-color: #93c5fd; }
+.sp-4 { background: #ede9fe; color: #5b21b6; border-color: #c4b5fd; }
+.sp-5 { background: #d1fae5; color: #065f46; border-color: #6ee7b7; }
+.chevron { font-size: 9px; color: #94a3b8; margin-left: 4px; display: inline-block; transition: transform 0.2s; }
+.expanded .chevron { transform: rotate(180deg); }
+
+/* ── Expand panel ─────────────────────────────────────────── */
+.exp-row td { padding: 0; background: #f8f5ff; border-bottom: 2px solid #e2e8f0; }
+.exp-content {
+  padding: 14px 16px 16px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 14px;
+}
+.exp-section h4 {
+  font-size: 10.5px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.05em; color: #64748b; margin-bottom: 8px;
+}
+.checklist { list-style: none; }
+.checklist li { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #374151; margin-bottom: 6px; line-height: 1.4; }
+.yn-btns { display: flex; gap: 3px; flex-shrink: 0; }
+.yn-btn {
+  padding: 2px 9px; border-radius: 4px; font-size: 10.5px; font-weight: 600;
+  cursor: pointer; border: 1.5px solid #e2e8f0; background: white;
+  user-select: none; transition: all 0.1s; line-height: 1.6;
+}
+.yn-btn:hover { border-color: #cbd5e1; background: #f8fafc; }
+.yn-btn.yes.active { background: #d1fae5; border-color: #6ee7b7; color: #065f46; }
+.yn-btn.no.active  { background: #fee2e2; border-color: #fca5a5; color: #991b1b; }
+
+.risk-box { background: #fff7ed; border-radius: 6px; padding: 10px 12px; border-left: 3px solid #fb923c; }
+.risk-box h4 { color: #9a3412; }
+.risk-box p { font-size: 12px; color: #7c2d12; line-height: 1.5; }
+
+.fw-detail { display: flex; flex-direction: column; gap: 7px; }
+.fw-block { border-radius: 5px; padding: 8px 10px; }
+.fw-block h5 { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 3px; }
+.fw-block p { font-size: 11px; line-height: 1.4; color: #374151; }
+.fw-block.owasp { background: #eff6ff; border-left: 3px solid #3b82f6; }
+.fw-block.nist  { background: #f5f3ff; border-left: 3px solid #8b5cf6; }
+.fw-block.iso   { background: #fdf2f8; border-left: 3px solid #ec4899; }
+.fw-block.owasp h5 { color: #1d4ed8; }
+.fw-block.nist h5  { color: #5b21b6; }
+.fw-block.iso h5   { color: #9d174d; }
+.fw-note { font-size: 10.5px; color: #64748b; margin-top: 3px; line-height: 1.4; }
+
+/* ── Framework ref tab ────────────────────────────────────── */
+.ref-table { width: 100%; border-collapse: collapse; }
+.ref-table th { padding: 10px 12px; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; color: #475569; border-bottom: 2px solid #e2e8f0; text-align: left; background: #f8fafc; }
+.ref-table td { padding: 10px 12px; font-size: 12px; border-bottom: 1px solid #f0f4f8; vertical-align: top; }
+.ref-note { background: #f8fafc; border-radius: 6px; padding: 12px 14px; margin-top: 12px; font-size: 12px; color: #475569; line-height: 1.6; border-left: 3px solid #94a3b8; }
+
+/* ── Notes tab ────────────────────────────────────────────── */
+.notes-wrap { background: white; border-radius: 8px; border: 1px solid #e2e8f0; padding: 20px; }
+.notes-wrap label { font-size: 12px; font-weight: 600; color: #475569; display: block; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
+.notes-wrap textarea {
+  width: 100%; min-height: 260px; padding: 12px; border: 1px solid #e2e8f0;
+  border-radius: 6px; font-size: 13px; color: #1e293b; resize: vertical;
+  font-family: inherit; line-height: 1.6; outline: none;
+}
+.notes-wrap textarea:focus { border-color: #7c3aed; }
+
+/* ── Toast ────────────────────────────────────────────────── */
+.toast {
+  position: fixed; bottom: 24px; right: 24px; padding: 10px 18px;
+  border-radius: 8px; font-size: 13px; font-weight: 500;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12); z-index: 9999;
+  transform: translateY(20px); opacity: 0; transition: all 0.25s;
+  pointer-events: none;
+}
+.toast.show { transform: translateY(0); opacity: 1; }
+.toast.success { background: #ecfdf5; color: #065f46; border: 1px solid #6ee7b7; }
+.toast.error   { background: #fef2f2; color: #991b1b; border: 1px solid #fca5a5; }
+
+/* Old print styles removed — replaced by .rpt-* section below */
+
+/* ── AI panel ─────────────────────────────────────────────── */
+.ai-panel { background: white; border-radius: 8px; border: 1px solid #e2e8f0; overflow: hidden; }
+.ai-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 20px 24px; border-bottom: 1px solid #e2e8f0; }
+.ai-context-wrap { border-bottom: 1px solid #e2e8f0; background: #fafbff; }
+.ai-context-toggle { display: flex; align-items: center; justify-content: space-between; padding: 12px 24px; cursor: pointer; user-select: none; }
+.ai-context-toggle:hover { background: #f1f5f9; }
+.ai-context-toggle-left { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: #475569; }
+.ai-context-badge { font-size: 10.5px; background: #7c3aed; color: white; padding: 1px 7px; border-radius: 10px; font-weight: 600; display:none; }
+.ai-context-badge.has-content { display:inline-block; }
+.ai-context-chevron { font-size: 11px; color: #94a3b8; transition: transform 0.2s; }
+.ai-context-chevron.open { transform: rotate(180deg); }
+.ai-context-body { display: none; padding: 0 24px 20px; }
+.ai-context-body.open { display: block; }
+.ai-context-hint { font-size: 12px; color: #64748b; margin-bottom: 14px; line-height: 1.5; }
+.ai-context-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.ai-context-field label { display: block; font-size: 11.5px; font-weight: 600; color: #374151; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 5px; }
+.ai-context-field label span { font-weight: 400; color: #94a3b8; text-transform: none; letter-spacing: 0; font-size: 11px; }
+.ai-context-field textarea { width: 100%; box-sizing: border-box; border: 1px solid #d1d5db; border-radius: 6px; padding: 8px 10px; font-size: 12.5px; font-family: inherit; line-height: 1.5; resize: vertical; min-height: 72px; color: #374151; }
+.ai-context-field textarea:focus { outline: none; border-color: #7c3aed; box-shadow: 0 0 0 2px rgba(124,58,237,0.12); }
+.ai-context-field textarea::placeholder { color: #cbd5e1; }
+.ai-doc-upload { margin-top: 14px; border-top: 1px solid #e2e8f0; padding-top: 14px; }
+.ai-doc-upload label { display: block; font-size: 11.5px; font-weight: 600; color: #374151; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 5px; }
+.ai-doc-upload label span { font-weight: 400; color: #94a3b8; text-transform: none; letter-spacing: 0; font-size: 11px; }
+.ai-doc-dropzone { border: 2px dashed #d1d5db; border-radius: 8px; padding: 16px 20px; display: flex; align-items: center; gap: 14px; cursor: pointer; transition: border-color 0.2s, background 0.2s; }
+.ai-doc-dropzone:hover { border-color: #7c3aed; background: #faf5ff; }
+.ai-doc-dropzone.has-file { border-color: #7c3aed; border-style: solid; background: #faf5ff; cursor: default; }
+.ai-doc-dropzone.uploading { border-color: #f59e0b; border-style: solid; background: #fffbeb; cursor: default; }
+.ai-doc-dropzone.error { border-color: #ef4444; border-style: solid; background: #fff5f5; }
+.ai-doc-icon { font-size: 22px; flex-shrink: 0; }
+.ai-doc-info { flex: 1; min-width: 0; }
+.ai-doc-name { font-size: 13px; font-weight: 600; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ai-doc-meta { font-size: 11.5px; color: #64748b; margin-top: 2px; }
+.ai-doc-meta.warn { color: #d97706; }
+.ai-doc-meta.error { color: #dc2626; }
+.ai-title { font-size: 15px; font-weight: 700; color: #1e293b; margin-bottom: 4px; }
+.ai-subtitle { font-size: 12px; color: #64748b; max-width: 540px; line-height: 1.5; }
+.ai-status { padding: 14px 24px; font-size: 13px; display: flex; align-items: center; gap: 10px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
+.ai-spinner { width: 16px; height: 16px; border: 2px solid #e2e8f0; border-top-color: #7c3aed; border-radius: 50%; animation: spin 0.7s linear infinite; flex-shrink: 0; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.ai-results-wrap { padding: 0; }
+.ai-section { padding: 20px 24px; border-bottom: 1px solid #f0f4f8; }
+.ai-section:last-child { border-bottom: none; }
+.ai-section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #7c3aed; margin-bottom: 12px; }
+.ai-prose { font-size: 13px; color: #374151; line-height: 1.7; }
+.ai-closing { background: #f5f3ff; border-radius: 6px; padding: 12px 16px; border-left: 3px solid #7c3aed; font-style: italic; }
+.ai-finding { display: flex; gap: 12px; align-items: flex-start; padding: 9px 0; border-bottom: 1px solid #f8fafc; }
+.ai-finding:last-child { border-bottom: none; }
+.sev-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10.5px; font-weight: 700; white-space: nowrap; flex-shrink: 0; margin-top: 2px; }
+.sev-critical { background: #fee2e2; color: #991b1b; }
+.sev-high     { background: #fef3c7; color: #92400e; }
+.sev-medium   { background: #dbeafe; color: #1e40af; }
+.sev-low      { background: #d1fae5; color: #065f46; }
+.ai-finding-text strong { font-size: 13px; color: #1e293b; display: block; margin-bottom: 2px; }
+.ai-finding-text span { font-size: 12px; color: #64748b; line-height: 1.5; }
+.ai-rec { background: #f8fafc; border-radius: 6px; padding: 14px 16px; margin-bottom: 10px; border-left: 4px solid #e2e8f0; }
+.ai-rec.sev-c { border-left-color: #ef4444; }
+.ai-rec.sev-h { border-left-color: #f59e0b; }
+.ai-rec.sev-m { border-left-color: #3b82f6; }
+.ai-rec.sev-l { border-left-color: #10b981; }
+.ai-rec-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+.ai-rec-domain { font-size: 13px; font-weight: 700; color: #1e293b; }
+.ai-rec-meta { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+.ai-rec-tag { font-size: 10px; padding: 2px 7px; border-radius: 3px; font-weight: 500; }
+.ai-rec-effort { background: #f1f5f9; color: #475569; }
+.ai-rec-fw { background: #ede9fe; color: #5b21b6; }
+.ai-rec-text { font-size: 12.5px; color: #374151; line-height: 1.6; }
+.ai-rec-gap { font-size: 11.5px; color: #64748b; margin-bottom: 6px; font-style: italic; }
+.roadmap-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+.roadmap-col { background: #f8fafc; border-radius: 6px; padding: 12px 14px; border-top: 3px solid; }
+.roadmap-col.immediate { border-top-color: #ef4444; }
+.roadmap-col.short-term { border-top-color: #f59e0b; }
+.roadmap-col.long-term { border-top-color: #10b981; }
+.roadmap-col h4 { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+.roadmap-col.immediate h4 { color: #991b1b; }
+.roadmap-col.short-term h4 { color: #92400e; }
+.roadmap-col.long-term h4 { color: #065f46; }
+.roadmap-item { font-size: 11.5px; color: #374151; padding: 4px 0; border-bottom: 1px solid #e2e8f0; line-height: 1.4; }
+.roadmap-item:last-child { border-bottom: none; }
+.roadmap-item .ri-domain { font-size: 10px; color: #94a3b8; display: block; }
+.roadmap-item .ri-owner { font-size: 10px; color: #7c3aed; }
+
+/* ── Roadmap tab ──────────────────────────────────────────── */
+.rm-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.rm-title { font-size: 18px; font-weight: 700; color: #1e1b4b; margin-bottom: 4px; }
+.rm-subtitle { font-size: 12px; color: #64748b; }
+.rm-horizon-summary { display: flex; gap: 10px; flex-shrink: 0; }
+.rm-horizon-chip { padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; border: 1.5px solid; }
+.rm-horizon-chip.immediate  { background: #fff5f5; color: #991b1b; border-color: #fca5a5; }
+.rm-horizon-chip.short_term { background: #fffbeb; color: #92400e; border-color: #fde68a; }
+.rm-horizon-chip.long_term  { background: #f0fdf4; color: #065f46; border-color: #6ee7b7; }
+.rm-workstreams { display: flex; flex-direction: column; gap: 16px; }
+.rm-ws-card { border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; background: white; }
+.rm-ws-card.pri-Critical .rm-ws-head { border-left: 5px solid #ef4444; }
+.rm-ws-card.pri-High     .rm-ws-head { border-left: 5px solid #f59e0b; }
+.rm-ws-card.pri-Medium   .rm-ws-head { border-left: 5px solid #3b82f6; }
+.rm-ws-card.pri-Low      .rm-ws-head { border-left: 5px solid #10b981; }
+.rm-ws-head { padding: 14px 18px; background: #f8fafc; display: flex; align-items: flex-start; gap: 14px; }
+.rm-ws-meta { flex: 1; min-width: 0; }
+.rm-ws-epic { font-size: 14px; font-weight: 700; color: #1e293b; margin-bottom: 4px; }
+.rm-ws-impact { font-size: 12.5px; color: #475569; line-height: 1.5; margin-bottom: 6px; }
+.rm-ws-tags { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.rm-ws-pri { font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 12px; }
+.rm-ws-pri.Critical { background:#fee2e2; color:#991b1b; }
+.rm-ws-pri.High     { background:#fef3c7; color:#92400e; }
+.rm-ws-pri.Medium   { background:#dbeafe; color:#1e40af; }
+.rm-ws-pri.Low      { background:#d1fae5; color:#065f46; }
+.rm-ws-domain-tag { font-size: 10.5px; background: #ede9fe; color: #5b21b6; padding: 2px 8px; border-radius: 10px; }
+.rm-ws-target-gap { font-size: 11px; background: #ecfdf5; color: #065f46; padding: 2px 8px; border-radius: 10px; border: 1px solid #6ee7b7; }
+.rm-ws-risk { font-size: 11px; color: #64748b; font-style: italic; margin-top: 6px; }
+.rm-ws-items { padding: 0 18px 14px; }
+.rm-item-row { display: grid; grid-template-columns: 90px 1fr 140px; gap: 10px; align-items: start; padding: 10px 0; border-bottom: 1px solid #f1f5f9; }
+.rm-item-row:last-child { border-bottom: none; }
+.rm-item-horizon { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 10px; }
+.rm-item-horizon.immediate  { background: #fff5f5; color: #991b1b; }
+.rm-item-horizon.short_term { background: #fffbeb; color: #92400e; }
+.rm-item-horizon.long_term  { background: #f0fdf4; color: #065f46; }
+.rm-item-action { font-size: 13px; color: #1e293b; line-height: 1.5; font-weight: 500; }
+.rm-item-outcome { font-size: 11.5px; color: #64748b; line-height: 1.4; font-style: italic; }
+.rm-item-meta { display: flex; flex-direction: column; gap: 3px; align-items: flex-end; }
+.rm-item-owner { font-size: 11px; color: #7c3aed; font-weight: 500; text-align: right; }
+.rm-item-effort { font-size: 10.5px; color: #94a3b8; }
+.rm-items-header { display: grid; grid-template-columns: 90px 1fr 140px; gap: 10px; padding: 8px 0 4px; border-bottom: 2px solid #e2e8f0; margin-bottom: 2px; }
+.rm-items-header span { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #94a3b8; }
+
+/* ── Print report sections ────────────────────────────────── */
+.rpt-cover, .rpt-page, .rpt-footer,
+.rpt-cover-logo, .rpt-score-banner, .rpt-findings-table,
+.rpt-checklist-page, .rpt-ai-page, .rpt-roadmap-page, .rpt-notes-page { display: none; }
+
+@media print {
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  body { background: white; font-size: 10pt; margin: 0; }
+
+  /* Hide all screen UI */
+  .topnav, .metabar, .score-banner, .tabs, .tab-panel,
+  .screen-only, .toast, .btn { display: none !important; }
+
+  /* Show all report sections */
+  .rpt-cover, .rpt-page, .rpt-footer { display: block !important; }
+  /* Fix findings table hidden by screen CSS */
+  .rpt-findings-table { display: table !important; }
+
+  /* ── Cover page ── */
+  .rpt-cover {
+    display: flex !important; flex-direction: column; align-items: flex-start;
+    justify-content: flex-start; padding: 72px 64px 48px;
+    background: #1e1b4b; color: white; page-break-after: always;
+  }
+  .rpt-cover-logo { margin-bottom: 36px; }
+  .rpt-cover-logo img { height: 32px; filter: brightness(0) invert(1); }
+  .rpt-cover-title { font-size: 28pt; font-weight: 800; line-height: 1.2; margin-bottom: 8px; color: white; }
+  .rpt-cover-sub { font-size: 11pt; color: rgba(255,255,255,0.6); margin-bottom: 32px; text-transform: uppercase; letter-spacing: 0.1em; }
+  .rpt-cover-meta { background: rgba(255,255,255,0.08); border-radius: 8px; padding: 16px 20px; margin-bottom: 20px; width: 100%; }
+  .rpt-cover-meta-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+  .rpt-cover-meta-grid div span { display: block; font-size: 8pt; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(255,255,255,0.5); margin-bottom: 3px; }
+  .rpt-cover-meta-grid div strong { font-size: 11pt; color: white; font-weight: 600; }
+  .rpt-cover-posture-wrap { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; }
+  .rpt-cover-posture-label { font-size: 10pt; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.08em; }
+  .rpt-posture-badge { display: inline-block; padding: 5px 16px; border-radius: 20px; font-size: 12pt; font-weight: 700; }
+  .rpt-posture-badge.critical  { background: #fee2e2; color: #991b1b; }
+  .rpt-posture-badge.developing{ background: #fef3c7; color: #92400e; }
+  .rpt-posture-badge.managed   { background: #d1fae5; color: #065f46; }
+  .rpt-posture-badge.optimized { background: #a7f3d0; color: #064e3b; }
+  .rpt-posture-badge.unscored  { background: rgba(255,255,255,0.15); color: white; }
+  .rpt-cover-frameworks { font-size: 8pt; color: rgba(255,255,255,0.4); }
+
+  /* ── Report pages ── */
+  .rpt-page {
+    display: block !important; padding: 24px 40px;
+  }
+  /* Only force page breaks at major section boundaries */
+  .rpt-exec, .rpt-findings, .rpt-checklist-page, .rpt-ai-page, .rpt-roadmap-page, .rpt-notes-page { page-break-before: always; }
+
+  /* ── Roadmap print page ── */
+  .rpt-roadmap-page { display: block !important; }
+  .rpt-ws-block { margin-bottom: 14px; border: 1px solid #e2e8f0; border-radius: 6px; overflow: hidden; page-break-inside: avoid; }
+  .rpt-ws-block.pri-Critical { border-left: 4px solid #ef4444; }
+  .rpt-ws-block.pri-High     { border-left: 4px solid #f59e0b; }
+  .rpt-ws-block.pri-Medium   { border-left: 4px solid #3b82f6; }
+  .rpt-ws-block.pri-Low      { border-left: 4px solid #10b981; }
+  .rpt-ws-head { background: #f8fafc; padding: 8px 12px; display: flex; align-items: flex-start; gap: 10px; }
+  .rpt-ws-epic { font-size: 10.5pt; font-weight: 700; color: #1e293b; margin-bottom: 3px; }
+  .rpt-ws-impact { font-size: 9pt; color: #475569; margin-bottom: 4px; }
+  .rpt-ws-tagrow { display: flex; gap: 5px; flex-wrap: wrap; align-items: center; }
+  .rpt-ws-pri { font-size: 8pt; font-weight: 700; padding: 1px 7px; border-radius: 10px; }
+  .rpt-ws-pri.Critical { background:#fee2e2; color:#991b1b; }
+  .rpt-ws-pri.High     { background:#fef3c7; color:#92400e; }
+  .rpt-ws-pri.Medium   { background:#dbeafe; color:#1e40af; }
+  .rpt-ws-pri.Low      { background:#d1fae5; color:#065f46; }
+  .rpt-ws-dtag { font-size: 8pt; background: #ede9fe; color: #5b21b6; padding: 1px 6px; border-radius: 8px; }
+  .rpt-ws-tgap { font-size: 8pt; background: #ecfdf5; color: #065f46; padding: 1px 6px; border-radius: 8px; border: 1px solid #6ee7b7; }
+  .rpt-ws-risk-txt { font-size: 8.5pt; color: #64748b; font-style: italic; margin-top: 4px; }
+  .rpt-ws-items-table { width: 100%; border-collapse: collapse; font-size: 9pt; }
+  .rpt-ws-items-table th { background: #f1f5f9; font-size: 7.5pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: #64748b; padding: 5px 10px; text-align: left; }
+  .rpt-ws-items-table td { padding: 6px 10px; border-bottom: 1px solid #f1f5f9; vertical-align: top; line-height: 1.4; }
+  .rpt-ws-items-table tr:last-child td { border-bottom: none; }
+  .rpt-hz-badge { display: inline-block; font-size: 7.5pt; font-weight: 700; padding: 1px 6px; border-radius: 8px; }
+  .rpt-hz-badge.immediate  { background: #fff5f5; color: #991b1b; }
+  .rpt-hz-badge.short_term { background: #fffbeb; color: #92400e; }
+  .rpt-hz-badge.long_term  { background: #f0fdf4; color: #065f46; }
+  .rpt-rm-action { font-weight: 600; color: #1e293b; }
+  .rpt-rm-outcome { color: #64748b; font-style: italic; font-size: 8.5pt; margin-top: 2px; }
+  .rpt-page-header {
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 2px solid #1e1b4b; padding-bottom: 6px; margin-bottom: 14px;
+    font-size: 8pt; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em;
+  }
+  .rpt-page-header span:first-child { font-size: 13pt; font-weight: 700; color: #1e1b4b; text-transform: none; letter-spacing: 0; }
+
+  /* ── Score banner ── */
+  .rpt-score-banner { display: flex !important; gap: 16px; align-items: flex-start; margin-bottom: 14px; padding: 10px 16px; background: #f8fafc; border-radius: 6px; border: 1px solid #e2e8f0; }
+  .rpt-score-card { text-align: center; min-width: 80px; }
+  .rpt-score-num { font-size: 28pt; font-weight: 800; color: #7c3aed; line-height: 1; }
+  .rpt-score-label { font-size: 8pt; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 3px; }
+  .rpt-score-bars { flex: 1; }
+  .rpt-bar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+  .rpt-bar-label { font-size: 9pt; width: 160px; flex-shrink: 0; color: #374151; }
+  .rpt-bar-track { flex: 1; height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden; }
+  .rpt-bar-fill { height: 100%; border-radius: 4px; }
+  .rpt-bar-val { font-size: 9pt; font-weight: 700; width: 20px; text-align: right; }
+
+  /* ── Prose ── */
+  .rpt-prose { font-size: 9.5pt; line-height: 1.55; color: #374151; }
+  .rpt-prose p { margin-bottom: 7px; }
+  .rpt-prose p:last-child { margin-bottom: 0; }
+
+  /* ── Findings table ── */
+  .rpt-findings-table { width: 100%; border-collapse: collapse; font-size: 9pt; }
+  .rpt-findings-table th { background: #1e1b4b; color: white; padding: 8px 10px; text-align: left; font-size: 8pt; text-transform: uppercase; letter-spacing: 0.04em; }
+  .rpt-findings-table td { padding: 8px 10px; border-bottom: 1px solid #e2e8f0; vertical-align: top; line-height: 1.4; }
+  .rpt-findings-table tr:nth-child(even) td { background: #f8fafc; }
+  .sev-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; }
+  .dot-critical { background: #ef4444; }
+  .dot-high     { background: #f59e0b; }
+  .dot-medium   { background: #3b82f6; }
+  .dot-low      { background: #10b981; }
+
+  /* ── Checklist detail ── */
+  .rpt-domain-block { margin-bottom: 10px; page-break-inside: avoid; }
+  .rpt-domain-header { display: flex; align-items: center; justify-content: space-between; background: #f1f5f9; padding: 7px 10px; border-radius: 4px; margin-bottom: 6px; }
+  .rpt-domain-header strong { font-size: 10.5pt; color: #1e293b; }
+  .rpt-domain-score { font-size: 9pt; font-weight: 700; }
+  .rpt-check-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3px 16px; }
+  .rpt-check-item { font-size: 9pt; color: #374151; display: flex; align-items: flex-start; gap: 5px; line-height: 1.4; padding: 2px 0; }
+  .rpt-check-icon { flex-shrink: 0; font-size: 9pt; margin-top: 1px; }
+
+  /* ── AI recommendations ── */
+  .rpt-ai-rec { margin-bottom: 8px; padding: 8px 12px; border-radius: 5px; border-left: 4px solid; page-break-inside: avoid; }
+  .rpt-ai-rec.rc { border-left-color: #ef4444; background: #fff5f5; }
+  .rpt-ai-rec.rh { border-left-color: #f59e0b; background: #fffbeb; }
+  .rpt-ai-rec.rm { border-left-color: #3b82f6; background: #eff6ff; }
+  .rpt-ai-rec.rl { border-left-color: #10b981; background: #f0fdf4; }
+  .rpt-ai-rec-head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .rpt-ai-rec-head strong { font-size: 11pt; color: #1e293b; }
+  .rpt-ai-rec-gap { font-size: 9pt; color: #64748b; font-style: italic; margin-bottom: 5px; }
+  .rpt-ai-rec-text { font-size: 10pt; color: #374151; line-height: 1.6; margin-bottom: 6px; }
+  .rpt-ai-rec-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+  .rpt-tag { font-size: 8pt; padding: 2px 6px; border-radius: 3px; }
+  .rpt-tag-effort { background: #f1f5f9; color: #475569; }
+  .rpt-tag-owasp { background: #dbeafe; color: #1e40af; }
+  .rpt-tag-nist  { background: #ede9fe; color: #5b21b6; }
+  .rpt-tag-iso   { background: #fce7f3; color: #9d174d; }
+
+  /* ── Roadmap ── */
+  .rpt-roadmap-section { margin-top: 14px; page-break-before: always; }
+  .rpt-roadmap-title { font-size: 11pt; font-weight: 700; color: #1e1b4b; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.05em; border-top: 2px solid #1e1b4b; padding-top: 12px; }
+  .rpt-roadmap-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  .rpt-roadmap-col { padding: 12px; border-radius: 5px; border-top: 3px solid; }
+  .rpt-roadmap-col.ri { border-top-color: #ef4444; background: #fff5f5; }
+  .rpt-roadmap-col.rs { border-top-color: #f59e0b; background: #fffbeb; }
+  .rpt-roadmap-col.rl { border-top-color: #10b981; background: #f0fdf4; }
+  .rpt-roadmap-col h4 { font-size: 9pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+  .rpt-roadmap-col.ri h4 { color: #991b1b; }
+  .rpt-roadmap-col.rs h4 { color: #92400e; }
+  .rpt-roadmap-col.rl h4 { color: #065f46; }
+  .rpt-roadmap-item { font-size: 9pt; color: #374151; padding: 4px 0; border-bottom: 1px solid rgba(0,0,0,0.06); line-height: 1.4; }
+  .rpt-roadmap-item:last-child { border-bottom: none; }
+  .rpt-roadmap-owner { font-size: 8pt; color: #7c3aed; display: block; }
+
+  /* ── Progress page ── */
+  .rpt-progress-page { page-break-before: always; }
+  .rpt-progress-summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 14px; }
+  .rpt-progress-stat { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 12px; text-align: center; }
+  .rpt-progress-stat .ps-num { font-size: 22pt; font-weight: 800; line-height: 1; }
+  .rpt-progress-stat .ps-label { font-size: 7.5pt; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 3px; }
+  .ps-improved .ps-num { color: #059669; }
+  .ps-regressed .ps-num { color: #dc2626; }
+  .ps-unchanged .ps-num { color: #64748b; }
+  .ps-delta .ps-num { color: #7c3aed; }
+  .rpt-progress-charts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+  .rpt-progress-table table { width: 100%; border-collapse: collapse; font-size: 9pt; }
+  .rpt-progress-table th { background: #1e1b4b; color: white; padding: 7px 10px; text-align: left; font-size: 8pt; text-transform: uppercase; letter-spacing: 0.04em; }
+  .rpt-progress-table td { padding: 7px 10px; border-bottom: 1px solid #e2e8f0; vertical-align: middle; }
+  .rpt-progress-table tr:nth-child(even) td { background: #f8fafc; }
+  .delta-up   { color: #059669; font-weight: 700; }
+  .delta-down { color: #dc2626; font-weight: 700; }
+  .delta-same { color: #94a3b8; }
+
+  /* ── Report charts ── */
+  .rpt-charts-row { display: grid !important; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+  .rpt-chart-box { border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 12px; }
+  .rpt-chart-label { font-size: 7.5pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #64748b; margin-bottom: 6px; }
+  .rpt-chart-box svg { width: 100%; height: auto; display: block; }
+
+  /* ── Closing ── */
+  .rpt-closing { margin-top: 20px; background: #f5f3ff; border-radius: 6px; padding: 14px 16px; border-left: 4px solid #7c3aed; font-size: 10.5pt; color: #1e293b; font-style: italic; line-height: 1.6; }
+
+  /* ── Notes ── */
+  .rpt-notes-body { font-size: 10pt; color: #374151; line-height: 1.7; white-space: pre-wrap; border: 1px solid #e2e8f0; border-radius: 4px; padding: 14px; min-height: 120px; }
+
+  /* ── Footer ── */
+  .rpt-footer {
+    display: block !important; position: fixed; bottom: 0; left: 0; right: 0;
+    display: flex; justify-content: space-between; padding: 8px 48px;
+    font-size: 8pt; color: #94a3b8; border-top: 1px solid #e2e8f0;
+    background: white;
+  }
+
+  /* ── No AI section if no analysis ── */
+  .rpt-ai-page.empty { display: none !important; }
+  .rpt-roadmap-page.empty { display: none !important; }
+  .rpt-notes-page.empty { display: none !important; }
+}
+
+/* Print-only elements hidden on screen */
+.rpt-cover, .rpt-page, .rpt-footer { display: none; }
+
+.btn-row { display: flex; gap: 8px; margin-bottom: 14px; align-items: center; flex-wrap: wrap; }
+
+/* ── Baseline banner ──────────────────────────────────────── */
+.baseline-banner { display: flex; align-items: center; gap: 8px; background: #fffbeb; border-bottom: 1px solid #fde68a; padding: 7px 18px; font-size: 12px; color: #78350f; }
+.baseline-icon { font-size: 14px; }
+.baseline-sep { color: #d97706; }
+.baseline-delta { font-weight: 600; color: #d97706; }
+.baseline-clear-btn { color: #92400e !important; border-color: #fde68a !important; }
+
+/* ── Charts row ───────────────────────────────────────────── */
+.charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 0 0 14px; }
+.chart-card { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 16px; }
+.chart-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #64748b; margin-bottom: 6px; }
+.chart-card svg { width: 100%; height: auto; display: block; max-height: 300px; }
+
+/* ── Branding settings modal ──────────────────────────────── */
+.settings-modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:1000; align-items:center; justify-content:center; }
+.settings-modal-overlay.open { display:flex; }
+.settings-modal { background:white; border-radius:12px; padding:28px 32px; width:500px; max-width:94vw; box-shadow:0 20px 60px rgba(0,0,0,0.25); }
+.settings-modal h3 { font-size:16px; font-weight:700; color:#1e1b4b; margin-bottom:4px; }
+.settings-modal .sm-sub { font-size:12px; color:#64748b; margin-bottom:20px; }
+.settings-field { margin-bottom:16px; }
+.settings-field label { display:block; font-size:12px; font-weight:600; color:#374151; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.05em; }
+.settings-field input[type="text"] { width:100%; box-sizing:border-box; border:1px solid #d1d5db; border-radius:6px; padding:8px 10px; font-size:14px; }
+.settings-field input[type="text"]:focus { outline:none; border-color:#7c3aed; box-shadow:0 0 0 2px rgba(124,58,237,0.15); }
+.logo-upload-area { border:2px dashed #d1d5db; border-radius:8px; padding:16px; text-align:center; cursor:pointer; transition:border-color 0.2s; }
+.logo-upload-area:hover { border-color:#7c3aed; }
+.logo-upload-area input { display:none; }
+.logo-preview-wrap { display:flex; align-items:center; gap:12px; margin-top:10px; }
+.logo-preview-wrap img { max-height:40px; max-width:160px; object-fit:contain; border:1px solid #e2e8f0; border-radius:4px; padding:4px; background:#f8fafc; }
+.sm-actions { display:flex; gap:8px; justify-content:flex-end; margin-top:20px; padding-top:16px; border-top:1px solid #f1f5f9; }
+.sm-tabs { display:flex; gap:0; border-bottom:2px solid #e2e8f0; margin-bottom:20px; }
+.sm-tab { padding:8px 16px; font-size:13px; font-weight:600; color:#64748b; cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-2px; }
+.sm-tab.active { color:#7c3aed; border-bottom-color:#7c3aed; }
+.sm-tab-panel { display:none; }
+.sm-tab-panel.active { display:block; }
+.provider-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:16px; }
+.provider-card { border:2px solid #e2e8f0; border-radius:8px; padding:10px 12px; cursor:pointer; transition:all 0.15s; display:flex; align-items:center; gap:10px; }
+.provider-card:hover { border-color:#c4b5fd; background:#faf5ff; }
+.provider-card.selected { border-color:#7c3aed; background:#faf5ff; }
+.provider-card.unavailable { opacity:0.45; cursor:not-allowed; }
+.provider-icon { font-size:20px; flex-shrink:0; }
+.provider-info { flex:1; min-width:0; }
+.provider-name { font-size:13px; font-weight:600; color:#1e293b; }
+.provider-status { font-size:11px; margin-top:1px; }
+.provider-status.ok  { color:#059669; }
+.provider-status.missing { color:#dc2626; }
+.model-select-row { display:flex; gap:8px; align-items:flex-end; }
+.model-select-row select, .model-select-row input { flex:1; border:1px solid #d1d5db; border-radius:6px; padding:8px 10px; font-size:13px; }
+.model-select-row select:focus, .model-select-row input:focus { outline:none; border-color:#7c3aed; }
+.azure-fields { display:none; margin-top:12px; }
+.azure-fields.show { display:block; }
+.azure-fields .settings-field { margin-bottom:10px; }
+</style>
+</head>
+<body>
+
+<!-- ── Top nav ──────────────────────────────────────────── -->
+<nav class="topnav">
+  <div class="topnav-left">
+    <img src="" alt="" class="topnav-logo" id="nav-logo" style="display:none">
+    <span class="topnav-logo-fallback" id="nav-logo-fb" style="display:block">My Organization</span>
+    <div class="topnav-divider"></div>
+    <span class="topnav-title">AI Security Maturity Assessment</span>
+  </div>
+  <div class="topnav-right">
+    <span class="save-indicator" id="save-ind">✓ Saved</span>
+    <input type="file" id="import-file" accept=".json" style="display:none" onchange="importAssessment(this.files[0]);this.value=''">
+    <button class="btn btn-ghost" onclick="document.getElementById('import-file').click()">📂 Import</button>
+    <button class="btn btn-ghost" onclick="exportStateJSON()">📄 Export JSON</button>
+    <button class="btn btn-ghost" onclick="saveState()">💾 Save</button>
+    <button class="btn btn-primary" onclick="exportPDF()">⬇ Export PDF</button>
+    <button class="btn" onclick="document.getElementById('settings-modal').classList.add('open')" style="background:rgba(255,255,255,0.12);color:white;border:1px solid rgba(255,255,255,0.2);font-size:12px">⚙ Branding</button>
+  </div>
+</nav>
+
+<!-- Settings modal (Branding + AI Provider) -->
+<div class="settings-modal-overlay" id="settings-modal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="settings-modal">
+    <h3>⚙ Settings</h3>
+    <p class="sm-sub">Configure branding and AI provider. Settings are saved with the assessment.</p>
+    <div class="sm-tabs">
+      <div class="sm-tab active" onclick="switchSettingsTab('branding')">Branding</div>
+      <div class="sm-tab" onclick="switchSettingsTab('ai')">AI Provider</div>
+    </div>
+
+    <!-- Branding tab -->
+    <div class="sm-tab-panel active" id="sm-panel-branding">
+      <div class="settings-field">
+        <label>Organization Name</label>
+        <input type="text" id="brand-name" placeholder="Your Company Name" oninput="applyBranding()">
+      </div>
+      <div class="settings-field">
+        <label>Logo</label>
+        <div class="logo-upload-area" onclick="document.getElementById('logo-file-input').click()">
+          <div id="logo-upload-prompt" style="font-size:13px;color:#64748b">Click to upload logo (PNG, SVG, JPG)</div>
+          <div class="logo-preview-wrap" id="logo-preview-wrap" style="display:none;justify-content:center">
+            <img id="logo-preview-img" src="" alt="Logo preview">
+            <button class="btn btn-danger" onclick="event.stopPropagation();clearLogo()" style="font-size:11px;padding:4px 10px">Remove</button>
+          </div>
+          <input type="file" id="logo-file-input" accept="image/*" onchange="handleLogoUpload(this)">
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Provider tab -->
+    <div class="sm-tab-panel" id="sm-panel-ai">
+      <div class="settings-field">
+        <label>Provider</label>
+        <div class="provider-grid" id="provider-grid">
+          <!-- populated by JS -->
+        </div>
+      </div>
+      <div class="settings-field">
+        <label>Model</label>
+        <div class="model-select-row">
+          <select id="ai-model-select" onchange="saveProviderSettings()">
+            <!-- populated by JS based on selected provider -->
+          </select>
+        </div>
+      </div>
+      <div class="azure-fields" id="azure-fields">
+        <div class="settings-field">
+          <label>Azure Endpoint</label>
+          <input type="text" id="azure-endpoint-display" placeholder="Configured via AZURE_OPENAI_ENDPOINT env var" disabled style="background:#f8fafc;color:#64748b">
+        </div>
+        <div class="settings-field">
+          <label>Deployment Name</label>
+          <input type="text" id="azure-deployment" placeholder="e.g. gpt-4o" oninput="saveProviderSettings()">
+        </div>
+      </div>
+      <p style="font-size:11.5px;color:#94a3b8;margin-top:8px">API keys are configured as environment variables on the server. Restart the container after adding a new key.</p>
+    </div>
+
+    <div class="sm-actions">
+      <button class="btn" onclick="document.getElementById('settings-modal').classList.remove('open')">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Meta bar ─────────────────────────────────────────── -->
+<div class="metabar screen-only">
+  <div class="meta-field">
+    <label>Team / Product</label>
+    <input type="text" id="meta-team" placeholder="e.g. Platform Engineering" oninput="autosave()">
+  </div>
+  <div class="meta-sep"></div>
+  <div class="meta-field">
+    <label>Assessor</label>
+    <input type="text" id="meta-assessor" placeholder="Your name" oninput="autosave()">
+  </div>
+  <div class="meta-sep"></div>
+  <div class="meta-field">
+    <label>Date</label>
+    <input type="date" id="meta-date" oninput="autosave()">
+  </div>
+  <div class="meta-sep"></div>
+  <div class="meta-field">
+    <label>AI System / Product</label>
+    <input type="text" id="meta-server" placeholder="e.g. Customer-Facing LLM API" oninput="autosave()">
+  </div>
+  <div class="meta-sep"></div>
+  <div class="meta-field">
+    <label>Location / GitHub</label>
+    <input type="text" id="meta-location" placeholder="e.g. github.com/org/ai-system" style="width:260px" oninput="autosave()">
+  </div>
+  <div class="meta-sep"></div>
+  <div class="meta-field">
+    <label>Target Maturity Level</label>
+    <select id="meta-target" onchange="autosave();updateScoreBanner()">
+      <option value="">— Not set —</option>
+      <option value="1">L1 — Basic Cyber Hygiene</option>
+      <option value="2">L2 — Intermediate</option>
+      <option value="3">L3 — Good Cyber Hygiene</option>
+      <option value="4">L4 — Proactive</option>
+      <option value="5">L5 — Advanced / Progressive</option>
+    </select>
+  </div>
+  <div class="meta-sep"></div>
+  <button class="btn btn-danger" onclick="resetAll()" style="font-size:12px">↺ Reset</button>
+  <input type="hidden" id="meta-original-date">
+</div>
+
+<!-- ── Baseline banner ───────────────────────────────────── -->
+<div id="baseline-banner" class="baseline-banner screen-only" style="display:none">
+  <span class="baseline-icon">📋</span>
+  <span>Updating assessment from</span>
+  <strong id="baseline-date-label"></strong>
+  <span class="baseline-sep">·</span>
+  <span id="baseline-delta-label" class="baseline-delta"></span>
+  <button class="btn btn-ghost baseline-clear-btn" onclick="clearBaseline()" style="font-size:11px;padding:2px 8px;margin-left:auto">✕ Clear baseline</button>
+</div>
+
+<!-- ── Score banner ──────────────────────────────────────── -->
+<div class="score-banner screen-only">
+  <div>
+    <div class="score-label">Overall Score</div>
+    <div class="score-big"><span class="num" id="score-num">—</span><span class="denom">&nbsp;/ 45</span></div>
+  </div>
+  <div>
+    <div class="score-label">Posture</div>
+    <span class="posture-pill posture-none" id="posture-pill">Not assessed</span>
+  </div>
+  <div class="progress-wrap">
+    <div class="score-label">Progress (<span id="scored-count">0</span> / 9 domains scored)</div>
+    <div class="progress-bar-bg"><div class="progress-bar-fill" id="progress-fill" style="width:0%"></div></div>
+  </div>
+  <div>
+    <div class="score-label">Domain breakdown</div>
+    <div class="domain-pills" id="domain-pills"></div>
+  </div>
+</div>
+
+<!-- ── Charts row ────────────────────────────────────────── -->
+<div class="charts-row screen-only">
+  <div class="chart-card">
+    <div class="chart-title">Security Posture — Radar</div>
+    <svg id="spider-chart" viewBox="0 0 320 280" xmlns="http://www.w3.org/2000/svg"></svg>
+  </div>
+  <div class="chart-card">
+    <div class="chart-title">Maturity by Domain</div>
+    <svg id="bar-chart" viewBox="0 0 360 280" xmlns="http://www.w3.org/2000/svg"></svg>
+  </div>
+</div>
+
+<!-- ── Tabs ──────────────────────────────────────────────── -->
+<div class="tabs screen-only">
+  <div class="tab active" onclick="switchTab('matrix')">Assessment Matrix</div>
+  <div class="tab" onclick="switchTab('frameworks')">Framework Reference</div>
+  <div class="tab" onclick="switchTab('ai')">AI Analysis</div>
+  <div class="tab" onclick="switchTab('roadmap')">Roadmap</div>
+  <div class="tab" onclick="switchTab('notes')">Notes</div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+<!-- ════════════════════════════════════════════════════════
+     CONTENT PANELS
+     ════════════════════════════════════════════════════════ -->
+<div class="content">
+
+  <!-- Matrix tab -->
+  <div id="panel-matrix" class="tab-panel">
+    <div class="btn-row screen-only">
+      <span style="font-size:12px;color:#64748b">Expand a row and <strong>check items</strong> to auto-score · or click a <strong>level badge</strong> to manually set a score · click the active badge again to clear the override</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Domain</th>
+            <th class="level-h">L1 — Basic Cyber Hygiene</th>
+            <th class="level-h">L2 — Intermediate</th>
+            <th class="level-h">L3 — Good Cyber Hygiene</th>
+            <th class="level-h">L4 — Proactive</th>
+            <th class="level-h">L5 — Advanced</th>
+            <th class="fw-h screen-only">Framework Refs</th>
+            <th class="score-h">Score</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Framework ref tab -->
+  <div id="panel-frameworks" class="tab-panel" style="display:none">
+    <div class="table-wrap">
+      <table class="ref-table">
+        <thead>
+          <tr>
+            <th style="width:170px">Domain</th>
+            <th>OWASP LLM Top 10 (2025)</th>
+            <th>NIST CSF 2.0 / AI RMF</th>
+            <th>ISO/IEC 42001:2023</th>
+          </tr>
+        </thead>
+        <tbody id="ref-tbody"></tbody>
+      </table>
+      <div class="ref-note" style="margin:12px">
+        <strong>Coverage note:</strong> The matrix domains were derived from the OWASP LLM Top 10 (2025), NIST AI RMF, ISO 42001, and MITRE ATLAS adversarial ML taxonomy. The mappings show where each domain aligns to existing framework controls. ISO 42001 is governance-oriented — Annex A references indicate control objectives. OWASP LLM Top 10 provides the most direct technical coverage.
+      </div>
+    </div>
+  </div>
+
+  <!-- Roadmap tab -->
+  <div id="panel-roadmap" class="tab-panel" style="display:none">
+    <div id="roadmap-empty" style="padding:40px;text-align:center;color:#94a3b8;font-size:14px">
+      Run <strong>AI Analysis</strong> to generate the roadmap recommendation.
+    </div>
+    <div id="roadmap-content" style="display:none">
+      <div class="rm-header">
+        <div>
+          <h2 class="rm-title">Security Roadmap Recommendations</h2>
+          <p class="rm-subtitle">Prioritized workstreams for product planning · AI-generated based on assessment results</p>
+        </div>
+        <div id="rm-horizon-summary" class="rm-horizon-summary"></div>
+      </div>
+      <div id="rm-workstreams"></div>
+    </div>
+  </div>
+
+  <!-- Notes tab -->
+  <div id="panel-notes" class="tab-panel" style="display:none">
+    <div class="notes-wrap">
+      <label>Meeting Notes &amp; Observations</label>
+      <textarea id="notes-area" placeholder="Capture context, decisions, exceptions, and action items here..." oninput="autosave()"></textarea>
+    </div>
+  </div>
+
+  <!-- AI Analysis panel -->
+  <div id="panel-ai" class="tab-panel" style="display:none">
+    <div class="ai-panel">
+      <div class="ai-header">
+        <div>
+          <div class="ai-title">AI Security Analysis</div>
+          <div class="ai-subtitle">Sends your assessment scores to Claude for an evaluation, gap analysis, and prioritised remediation roadmap. Tailored for AI system security.</div>
+        </div>
+        <button class="btn btn-primary" id="analyze-btn" onclick="runAnalysis()">✦ Run Analysis</button>
+      </div>
+      <!-- Additional Context panel -->
+      <div class="ai-context-wrap">
+        <div class="ai-context-toggle" onclick="toggleAiContext()">
+          <div class="ai-context-toggle-left">
+            📋 Additional Context for AI Analysis
+            <span class="ai-context-badge" id="ai-context-badge">Filled</span>
+          </div>
+          <span class="ai-context-chevron" id="ai-context-chevron">▼</span>
+        </div>
+        <div class="ai-context-body" id="ai-context-body">
+          <p class="ai-context-hint">Provide any context that will help the AI give more accurate, relevant recommendations. All fields are optional — fill in what's relevant to your server.</p>
+          <div class="ai-context-fields">
+            <div class="ai-context-field">
+              <label>Architecture & Tech Stack <span>— frameworks, languages, hosting</span></label>
+              <textarea id="ctx-architecture" placeholder="e.g. PyTorch model served via FastAPI on AWS EKS, uses RAG with Pinecone, model accessed via internal API gateway…" oninput="updateContextBadge();autosave()"></textarea>
+            </div>
+            <div class="ai-context-field">
+              <label>Existing Mitigations <span>— controls already in place</span></label>
+              <textarea id="ctx-mitigations" placeholder="e.g. Models hosted in isolated VPC, prompts logged to Splunk, output filtered through Perspective API…" oninput="updateContextBadge();autosave()"></textarea>
+            </div>
+            <div class="ai-context-field">
+              <label>Compliance & Regulatory Requirements <span>— standards you must meet</span></label>
+              <textarea id="ctx-compliance" placeholder="e.g. EU AI Act High-Risk classification, SOC 2 Type II in scope, GDPR applies to training data…" oninput="updateContextBadge();autosave()"></textarea>
+            </div>
+            <div class="ai-context-field">
+              <label>Known Risks & Exceptions <span>— accepted risks or open issues</span></label>
+              <textarea id="ctx-risks" placeholder="e.g. Red-team testing deferred to Q3, no differential privacy yet, third-party base model not fully audited…" oninput="updateContextBadge();autosave()"></textarea>
+            </div>
+            <div class="ai-context-field" style="grid-column:1/-1">
+              <label>Additional Notes <span>— anything else the AI should know</span></label>
+              <textarea id="ctx-notes" placeholder="e.g. This is a customer-facing RAG application. Prioritising inference security and data privacy before launch…" oninput="updateContextBadge();autosave()" style="min-height:56px"></textarea>
+            </div>
+          </div>
+
+          <!-- Document upload -->
+          <div class="ai-doc-upload">
+            <label>Reference Document <span>— AI security policies, internal AI standards, or compliance frameworks to align recommendations to</span></label>
+            <input type="file" id="doc-file-input" accept=".pdf,.docx,.txt,.md" style="display:none" onchange="handleDocUpload(this)">
+            <div class="ai-doc-dropzone" id="doc-dropzone" onclick="document.getElementById('doc-file-input').click()">
+              <span class="ai-doc-icon" id="doc-icon">📄</span>
+              <div class="ai-doc-info">
+                <div class="ai-doc-name" id="doc-name">Click to upload a PDF, DOCX, or TXT file</div>
+                <div class="ai-doc-meta" id="doc-meta">Supports PDF, Word (.docx), plain text, and Markdown · Max 10 MB</div>
+              </div>
+              <button id="doc-remove-btn" class="btn btn-danger" style="display:none;font-size:11px;padding:4px 10px;flex-shrink:0" onclick="event.stopPropagation();removeDoc()">Remove</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div id="ai-status" style="display:none" class="ai-status"></div>
+      <div id="ai-results" style="display:none">
+        <div class="ai-section">
+          <div class="ai-section-title">Executive Summary</div>
+          <div id="ai-exec-summary" class="ai-prose"></div>
+        </div>
+        <div class="ai-section">
+          <div class="ai-section-title">Key Findings</div>
+          <div id="ai-findings"></div>
+        </div>
+        <div class="ai-section">
+          <div class="ai-section-title">Recommendations by Domain</div>
+          <div id="ai-recommendations"></div>
+        </div>
+        <div class="ai-section">
+          <div class="ai-section-title">Remediation Roadmap</div>
+          <div id="ai-roadmap"></div>
+        </div>
+        <div class="ai-section">
+          <div id="ai-closing" class="ai-prose ai-closing"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════
+       PRINT-ONLY REPORT SECTIONS
+       ══════════════════════════════════════════════════════════ -->
+
+  <!-- Cover page -->
+  <div class="rpt-cover">
+    <div class="rpt-cover-logo" id="rpt-cover-logo-wrap">
+      <img id="rpt-cover-logo-img" src="" alt="" style="display:none">
+      <span id="rpt-cover-logo-name" style="font-size:16pt;font-weight:700;color:white;opacity:0.9"></span>
+    </div>
+    <div class="rpt-cover-title">AI System Security<br>Maturity Assessment</div>
+    <div class="rpt-cover-sub">Confidential Security Report</div>
+    <div class="rpt-cover-meta">
+      <div class="rpt-cover-meta-grid">
+        <div><span>Team / Product</span><strong id="cv-team"></strong></div>
+        <div><span>AI System / Product</span><strong id="cv-server"></strong></div>
+        <div><span>Location</span><strong id="cv-location"></strong></div>
+        <div><span>Assessment Date</span><strong id="cv-date"></strong></div>
+        <div><span>Assessor</span><strong id="cv-assessor"></strong></div>
+        <div><span>Overall Score</span><strong id="cv-score"></strong></div>
+      </div>
+    </div>
+    <div class="rpt-cover-posture-wrap">
+      <span class="rpt-cover-posture-label">Security Posture</span>
+      <span id="cv-posture" class="rpt-posture-badge"></span>
+    </div>
+    <div class="rpt-cover-frameworks">Aligned to OWASP LLM Top 10 (2025) · NIST CSF 2.0 / AI RMF · ISO/IEC 42001:2023 · MITRE ATLAS</div>
+  </div>
+
+  <!-- Executive Summary page -->
+  <div class="rpt-page rpt-exec">
+    <div class="rpt-page-header"><span>Executive Summary</span><span id="rpt-date-header"></span></div>
+    <div class="rpt-score-banner">
+      <div class="rpt-score-card"><div class="rpt-score-num" id="rpt-score-num"></div><div class="rpt-score-label">Overall Score</div></div>
+      <div class="rpt-score-card"><div id="rpt-posture-badge" class="rpt-posture-badge"></div><div class="rpt-score-label">Security Posture</div></div>
+      <div class="rpt-score-bars" id="rpt-score-bars"></div>
+    </div>
+    <div class="rpt-charts-row">
+      <div class="rpt-chart-box">
+        <div class="rpt-chart-label">Security Posture — Radar</div>
+        <svg id="rpt-spider" viewBox="0 0 320 280" xmlns="http://www.w3.org/2000/svg"></svg>
+      </div>
+      <div class="rpt-chart-box">
+        <div class="rpt-chart-label">Maturity by Domain</div>
+        <svg id="rpt-bar" viewBox="0 0 360 280" xmlns="http://www.w3.org/2000/svg"></svg>
+      </div>
+    </div>
+    <div id="rpt-exec-summary" class="rpt-prose"></div>
+  </div>
+
+  <!-- Findings table page -->
+  <div class="rpt-page rpt-findings">
+    <div class="rpt-page-header"><span>Findings — Ranked by Severity</span><span id="rpt-date-header2"></span></div>
+    <table class="rpt-findings-table">
+      <thead>
+        <tr>
+          <th style="width:80px">Severity</th>
+          <th style="width:160px">Domain</th>
+          <th style="width:50px">Score</th>
+          <th>Gap</th>
+          <th style="width:120px">OWASP</th>
+          <th style="width:110px">NIST</th>
+          <th style="width:90px">ISO 42001</th>
+        </tr>
+      </thead>
+      <tbody id="rpt-findings-tbody"></tbody>
+    </table>
+  </div>
+
+  <!-- Checklist details page -->
+  <div class="rpt-page rpt-checklist-page">
+    <div class="rpt-page-header"><span>Control Checklist Detail</span></div>
+    <div id="rpt-checklist-content"></div>
+  </div>
+
+  <!-- Progress since last assessment page (hidden when no baseline) -->
+  <div class="rpt-page rpt-progress-page" id="rpt-progress-page" style="display:none">
+    <div class="rpt-page-header"><span>Progress Since Last Assessment</span><span id="rpt-progress-dates"></span></div>
+    <div class="rpt-progress-summary" id="rpt-progress-summary"></div>
+    <div class="rpt-progress-charts">
+      <div class="rpt-chart-box">
+        <div class="rpt-chart-label">Posture — Radar Comparison</div>
+        <svg id="rpt-spider-progress" viewBox="0 0 320 280" xmlns="http://www.w3.org/2000/svg"></svg>
+      </div>
+      <div class="rpt-chart-box">
+        <div class="rpt-chart-label">Maturity Change by Domain</div>
+        <svg id="rpt-bar-progress" viewBox="0 0 360 280" xmlns="http://www.w3.org/2000/svg"></svg>
+      </div>
+    </div>
+    <div id="rpt-progress-table"></div>
+  </div>
+
+  <!-- AI Recommendations page -->
+  <div class="rpt-page rpt-ai-page" id="rpt-ai-section">
+    <div class="rpt-page-header"><span>Recommendations &amp; Remediation</span><span>AI-Generated · Claude Sonnet</span></div>
+    <div id="rpt-ai-recommendations"></div>
+    <div class="rpt-roadmap-section" id="rpt-roadmap"></div>
+    <div class="rpt-closing" id="rpt-closing"></div>
+  </div>
+
+  <!-- Roadmap Recommendations page -->
+  <div class="rpt-page rpt-roadmap-page" id="rpt-roadmap-page">
+    <div class="rpt-page-header"><span>Roadmap Recommendations</span><span>AI-Generated · Claude Sonnet</span></div>
+    <div id="rpt-roadmap-content"></div>
+  </div>
+
+  <!-- Notes page -->
+  <div class="rpt-page rpt-notes-page" id="rpt-notes-page">
+    <div class="rpt-page-header"><span>Meeting Notes &amp; Observations</span></div>
+    <div class="rpt-notes-body" id="rpt-notes-body"></div>
+  </div>
+
+  <!-- Report footer (appears on every print page via fixed positioning) -->
+  <div class="rpt-footer">
+    <span id="rpt-footer-org">My Organization — Confidential</span>
+    <span id="rpt-footer-center">AI Security Maturity Assessment</span>
+    <span id="rpt-footer-date2"></span>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Data ──────────────────────────────────────────────────────────────────
+const DOMAINS = [
+  {
+    id: "ai-governance", icon: "🏛️", name: "AI Governance & Risk Management", sub: "Policy, accountability & risk registers",
+    levels: [
+      "L1 — No AI-specific governance; no risk register; ad hoc decisions",
+      "L2 — Basic AI use case inventory; informal risk discussions; limited executive awareness",
+      "L3 — Formal AI risk register; documented policies; designated accountability roles",
+      "L4 — AI governance committee; regular risk reviews; policies enforced via tooling",
+      "L5 — Continuous governance maturity; board-level AI risk reporting; policy effectiveness measured"
+    ],
+    checks: [
+      "An AI risk register is maintained and reviewed regularly",
+      "Each AI system has a designated owner accountable for security",
+      "AI use case inventory exists and is kept up to date",
+      "AI-specific security policies are documented and enforced",
+      "Executive or board-level awareness of AI risk exists",
+      "Third-party AI tools and vendors are included in governance scope"
+    ],
+    risk: "Without governance, AI risks go untracked, ownership is unclear, and incidents lack accountability. Regulatory exposure under EU AI Act and similar frameworks is direct.",
+    fw: {
+      owasp: { short: ["LLM09", "LLM01"], refs: ["LLM09: Misinformation", "LLM01: Prompt Injection"], note: "LLM09 addresses overreliance on AI outputs without governance controls. Governance is the foundational control for all other LLM risks." },
+      nist:  { short: ["GOVERN 1.1", "GOVERN 1.7"], refs: ["AI RMF GOVERN 1.1", "AI RMF GOVERN 1.7", "AI RMF GOVERN 6.1"], note: "GOVERN 1.1 establishes policies and accountability. GOVERN 1.7 requires defined AI system capability constraints. GOVERN 6.1 covers organizational risk tolerance." },
+      iso:   { short: ["6.1", "6.2"], refs: ["ISO 42001 Clause 6.1 (Risk management)", "ISO 42001 Clause 6.2 (AI objectives)", "ISO 42001 A.2 (Responsible use policy)"], note: "Clause 6.1 requires AI-specific risk assessment processes. A.2 requires a responsible AI use policy. These are the governance backbone of the standard." }
+    }
+  },
+  {
+    id: "training-data", icon: "🗄️", name: "Training Data Security & Provenance", sub: "Data poisoning prevention & lineage",
+    levels: [
+      "L1 — No controls on training data; sources undocumented",
+      "L2 — Training data sources loosely tracked; manual spot checks",
+      "L3 — Documented data provenance; integrity checks on ingestion; poisoning detection tooling",
+      "L4 — Automated lineage tracking; third-party dataset vetting process; adversarial data testing",
+      "L5 — Continuous data integrity monitoring; cryptographic provenance; measurable poisoning resistance"
+    ],
+    checks: [
+      "All training data sources are documented with provenance",
+      "Data integrity is verified on ingestion (checksums or signing)",
+      "Third-party and open-source datasets are reviewed before use",
+      "Controls exist to detect or prevent training data poisoning",
+      "Data lineage is tracked from source to model artifact",
+      "Retention and deletion policies govern training data lifecycle"
+    ],
+    risk: "Poisoned training data can embed backdoors, biases, or exfiltration triggers into model weights. Detection after training is extremely difficult — prevention at the data layer is critical.",
+    fw: {
+      owasp: { short: ["LLM03", "LLM05"], refs: ["LLM03: Training Data Poisoning", "LLM05: Supply Chain Vulnerabilities"], note: "LLM03 directly addresses malicious data injection into training sets. LLM05 covers compromised third-party training datasets as a supply chain risk." },
+      nist:  { short: ["MAP 2.1", "MEASURE 2.5"], refs: ["AI RMF MAP 2.1 (Data quality)", "AI RMF MEASURE 2.5 (Testing)", "AI RMF MANAGE 2.4"], note: "MAP 2.1 requires assessment of data quality and provenance. MEASURE 2.5 covers testing for adversarial and out-of-distribution inputs." },
+      iso:   { short: ["A.7", "8.4"], refs: ["ISO 42001 A.7 (Data for AI systems)", "ISO 42001 Clause 8.4 (Data acquisition)", "ISO 42001 A.7.2 (Data quality)"], note: "A.7 is the primary data governance annex for AI systems in ISO 42001. A.7.2 specifically addresses data quality requirements including poisoning prevention." }
+    }
+  },
+  {
+    id: "data-privacy", icon: "🔐", name: "Data Privacy & PII Protection", sub: "Sensitive data in training & inference",
+    levels: [
+      "L1 — No PII controls; training data and prompts unscreened",
+      "L2 — Ad hoc PII review; awareness but no automated tooling",
+      "L3 — Automated PII detection in training data; purpose limitation enforced; DPIAs conducted",
+      "L4 — Differential privacy applied; data minimization by design; consent management integrated",
+      "L5 — Privacy-preserving ML techniques; continuous PII monitoring at inference; breach simulation tested"
+    ],
+    checks: [
+      "PII in training data is identified and handled by policy",
+      "Purpose limitation prevents training on data beyond its original consent",
+      "Data Subject rights (access, deletion) are supportable for training data",
+      "Prompts and completions are screened for PII at inference",
+      "Cross-border data transfer controls are in place",
+      "Privacy Impact Assessments are conducted for new AI systems"
+    ],
+    risk: "AI models can memorize and regurgitate PII from training data. Inference endpoints that log prompts are a secondary PII exposure vector. GDPR/CCPA violations can be direct.",
+    fw: {
+      owasp: { short: ["LLM02", "LLM07"], refs: ["LLM02: Sensitive Information Disclosure", "LLM07: System Prompt Leakage"], note: "LLM02 covers unintended exposure of confidential data from model outputs. LLM07 applies when system prompts or context windows leak sensitive configuration." },
+      nist:  { short: ["GOVERN 6.2", "MAP 5.1"], refs: ["AI RMF GOVERN 6.2 (Privacy)", "AI RMF MAP 5.1 (Impacts)", "CSF PR.DS-1"], note: "GOVERN 6.2 addresses privacy as a cross-cutting AI risk. MAP 5.1 requires mapping privacy impacts across AI system lifecycle." },
+      iso:   { short: ["A.5", "8.5"], refs: ["ISO 42001 A.5 (Impact assessment)", "ISO 42001 Clause 8.5 (AI system design)", "ISO 42001 A.5.2 (Privacy)"], note: "A.5.2 specifically covers privacy-by-design requirements for AI systems. Clause 8.5 requires security and privacy controls designed into the system." }
+    }
+  },
+  {
+    id: "model-supply-chain", icon: "🔗", name: "Model Supply Chain Security", sub: "Pre-trained model integrity & dependencies",
+    levels: [
+      "L1 — Pre-trained models used without vetting; no provenance checks",
+      "L2 — Informal review of model sources; no automated scanning",
+      "L3 — Model provenance documented; vulnerability scanning on dependencies; registry access controlled",
+      "L4 — Cryptographic model signing; automated SBOM for AI components; fine-tuning pipeline integrity enforced",
+      "L5 — Continuous supply chain monitoring; runtime model integrity verification; adversarial backdoor scanning"
+    ],
+    checks: [
+      "Origin and provenance of all pre-trained models is documented",
+      "Pre-trained models are scanned for known vulnerabilities before use",
+      "Model registry or artifact store has access controls and audit logs",
+      "Fine-tuning pipelines have integrity checks and change controls",
+      "Third-party AI libraries and SDKs are tracked and patched",
+      "An AI-specific software bill of materials (SBOM) is maintained"
+    ],
+    risk: "Compromised pre-trained models can contain backdoors that activate under specific triggers. Supply chain attacks on model registries are an emerging and high-impact threat vector.",
+    fw: {
+      owasp: { short: ["LLM05", "LLM03"], refs: ["LLM05: Supply Chain Vulnerabilities", "LLM03: Training Data Poisoning"], note: "LLM05 directly covers risks from third-party models, plugins, and fine-tuning data sources. Pre-trained model supply chain is the highest-impact variant." },
+      nist:  { short: ["MAP 3.5", "GOVERN 1.7"], refs: ["AI RMF MAP 3.5 (Third-party risks)", "AI RMF GOVERN 1.7", "CSF ID.SC-1"], note: "MAP 3.5 requires identifying and assessing risks from third-party AI components. CSF ID.SC-1 covers supply chain risk management." },
+      iso:   { short: ["8.3", "A.4"], refs: ["ISO 42001 Clause 8.3 (AI system development)", "ISO 42001 A.4 (Resources)", "ISO 42001 A.6.1 (Intended use)"], note: "Clause 8.3 requires security controls throughout the AI development lifecycle including supply chain integrity. A.4 covers resource controls including model artifacts." }
+    }
+  },
+  {
+    id: "inference-security", icon: "⚡", name: "Inference & Runtime Security", sub: "Prompt injection, output filtering & rate limiting",
+    levels: [
+      "L1 — No controls; raw prompts passed to model; outputs returned unfiltered",
+      "L2 — Basic input length limits; awareness of prompt injection but no systematic defense",
+      "L3 — Input sanitization; output content filtering; rate limiting enforced; jailbreak detection",
+      "L4 — Automated injection detection; output policy enforcement; adaptive throttling; resource quotas",
+      "L5 — Real-time adversarial input detection; ML-based output risk scoring; continuous red-team testing"
+    ],
+    checks: [
+      "Prompts are sanitized and validated before reaching the model",
+      "Model outputs are filtered for harmful or policy-violating content",
+      "Rate limiting is enforced per user, session, or API key",
+      "Jailbreak and prompt injection detection is implemented",
+      "Resource quotas (tokens, compute, cost) are enforced per session",
+      "System prompts are protected from disclosure or override"
+    ],
+    risk: "Prompt injection can hijack model behavior, exfiltrate context, or bypass safety guardrails. Unbounded inference consumption can exhaust compute budgets in seconds during agentic loops.",
+    fw: {
+      owasp: { short: ["LLM01", "LLM10"], refs: ["LLM01: Prompt Injection", "LLM10: Unbounded Consumption", "LLM07: System Prompt Leakage"], note: "LLM01 is the primary inference-time attack. LLM10 covers compute exhaustion and cost amplification from uncontrolled inference. LLM07 covers system prompt leakage." },
+      nist:  { short: ["MANAGE 1.3", "MEASURE 2.6"], refs: ["AI RMF MANAGE 1.3 (Risk response)", "AI RMF MEASURE 2.6 (Testing)", "CSF PR.DS-4"], note: "MANAGE 1.3 covers implementation of risk responses at the inference layer. MEASURE 2.6 requires testing AI systems against adversarial inputs including prompt injection." },
+      iso:   { short: ["A.6.2", "8.6"], refs: ["ISO 42001 A.6.2 (AI system operation)", "ISO 42001 Clause 8.6 (AI system operation controls)", "ISO 42001 9.1"], note: "A.6.2 requires operational controls over AI system behavior including output monitoring. Clause 8.6 specifically covers safeguards during AI system operation." }
+    }
+  },
+  {
+    id: "access-control", icon: "🔑", name: "Model Access Control & Identity", sub: "API auth, RBAC & least-privilege",
+    levels: [
+      "L1 — No authentication; model APIs accessible to any caller",
+      "L2 — Shared API keys; no per-user identity; no access logging",
+      "L3 — Per-user API keys or tokens with expiry; RBAC for model access tiers",
+      "L4 — Short-lived tokens with rotation; MFA for model management; JIT elevation with audit trail",
+      "L5 — Zero-trust model access; continuous identity assurance; automated least-privilege enforcement"
+    ],
+    checks: [
+      "All model API access requires authentication",
+      "Credentials are unique per user or service, not shared",
+      "Role-based access controls govern who can query, fine-tune, or manage models",
+      "Tokens expire and are rotated regularly",
+      "AI agent service accounts have scoped, least-privilege permissions",
+      "Credential revocation and emergency access termination is tested"
+    ],
+    risk: "Unauthenticated model APIs allow unauthorized inference, fine-tuning, or exfiltration. Over-privileged service accounts create broad blast radius when AI agents are compromised.",
+    fw: {
+      owasp: { short: ["LLM06", "API2"], refs: ["LLM06: Excessive Agency", "OWASP API2: Broken Authentication"], note: "LLM06 addresses AI agents with excessive permissions. API2 covers authentication failures on model APIs. Both apply when model access is not properly controlled." },
+      nist:  { short: ["GOVERN 6.1", "PR.AA-1"], refs: ["AI RMF GOVERN 6.1 (Accountability)", "CSF PR.AA-1 (Identities managed)", "CSF PR.AA-5 (Least privilege)"], note: "GOVERN 6.1 requires accountability for AI system access. PR.AA-1/5 are the core identity and least-privilege controls applied to model APIs." },
+      iso:   { short: ["A.6.1.3", "8.2"], refs: ["ISO 42001 A.6.1.3 (Access control)", "ISO 42001 Clause 8.2 (Security by design)", "ISO 42001 A.9.3 (Responsible use)"], note: "A.6.1.3 requires access controls on AI system interfaces. Clause 8.2 requires security controls designed into AI system interfaces including authentication." }
+    }
+  },
+  {
+    id: "monitoring", icon: "📊", name: "Monitoring, Logging & Anomaly Detection", sub: "Audit trails, drift detection & alerting",
+    levels: [
+      "L1 — No logging of model queries or outputs",
+      "L2 — Basic request logging without correlation or analysis",
+      "L3 — Structured inference logs with user ID, timestamps, and token counts; anomaly alerting",
+      "L4 — Centralized SIEM with AI-specific analytics; model drift detection; full trace correlation",
+      "L5 — Automated behavioral baseline; proactive threat hunting; MTTD/MTTR measured for AI incidents"
+    ],
+    checks: [
+      "Every model inference is logged with user identity and timestamp",
+      "Logs include input/output summaries (sanitized for PII)",
+      "Logs are tamper-evident and retained per policy",
+      "Alerts fire on anomalous query patterns or output distributions",
+      "Model performance and drift are monitored in production",
+      "Audit logs support forensic investigation and incident replay"
+    ],
+    risk: "Without monitoring, adversarial probing, model abuse, and data exfiltration via inference go undetected. Model drift — security and quality degradation over time — is invisible without measurement.",
+    fw: {
+      owasp: { short: ["A09:Logging", "LLM08"], refs: ["OWASP A09: Security Logging Failures", "LLM08: Excessive Agency (monitoring)"], note: "A09:2021 directly maps to insufficient AI system logging. Monitoring is a critical countermeasure for LLM abuse scenarios across multiple LLM Top 10 categories." },
+      nist:  { short: ["MEASURE 2.8", "MANAGE 4.1"], refs: ["AI RMF MEASURE 2.8 (Monitoring)", "AI RMF MANAGE 4.1 (Incident response)", "SP 800-53 AU-2"], note: "MEASURE 2.8 requires ongoing monitoring of AI system behavior. MANAGE 4.1 requires incident response processes that depend on observable audit trails." },
+      iso:   { short: ["9.1", "10.1"], refs: ["ISO 42001 Clause 9.1 (Monitoring and measurement)", "ISO 42001 Clause 10.1 (Corrective action)", "ISO 42001 A.6.2"], note: "Clause 9.1 requires performance and behavior monitoring. Clause 10.1 requires logging of nonconformities detected through monitoring." }
+    }
+  },
+  {
+    id: "adversarial-testing", icon: "🎯", name: "Adversarial Robustness & Red-Teaming", sub: "Evasion testing, red team & hardening",
+    levels: [
+      "L1 — No adversarial testing; robustness assumed",
+      "L2 — Ad hoc manual testing; no documented methodology",
+      "L3 — Structured red-team exercises; documented adversarial test cases; results tracked",
+      "L4 — Automated adversarial testing in CI/CD; external red-team engagements; robustness benchmarks",
+      "L5 — Continuous automated adversarial evaluation; MITRE ATLAS-mapped threat coverage; measurable robustness improvement"
+    ],
+    checks: [
+      "Adversarial testing (prompt injection, jailbreaks) is conducted before production",
+      "Red-team exercises are performed at least annually",
+      "Evasion and model inversion attack scenarios are tested",
+      "Adversarial test results are documented and tracked to resolution",
+      "A responsible disclosure process exists for AI vulnerabilities",
+      "Model robustness benchmarks are tracked across versions"
+    ],
+    risk: "Untested models have unknown adversarial attack surfaces. Attackers routinely discover jailbreaks, evasion techniques, and data extraction methods that were never tested internally.",
+    fw: {
+      owasp: { short: ["LLM07", "LLM04"], refs: ["LLM07: System Prompt Leakage", "LLM04: Model Denial of Service", "LLM01: Prompt Injection"], note: "Adversarial testing is the primary mitigation for prompt injection (LLM01), system prompt extraction (LLM07), and model evasion. It spans the entire OWASP LLM Top 10." },
+      nist:  { short: ["MEASURE 2.6", "MANAGE 2.2"], refs: ["AI RMF MEASURE 2.6 (Adversarial testing)", "AI RMF MANAGE 2.2 (Risk response)", "MITRE ATLAS AML.T0015"], note: "MEASURE 2.6 explicitly requires adversarial testing. MITRE ATLAS provides the adversarial ML threat taxonomy that should drive test case selection." },
+      iso:   { short: ["9.2", "A.6.4"], refs: ["ISO 42001 Clause 9.2 (Internal audit)", "ISO 42001 A.6.4 (AI system testing)", "ISO 42001 8.4 (Validation)"], note: "A.6.4 requires testing AI systems against security failure modes including adversarial scenarios. Clause 9.2 requires systematic audit including security testing." }
+    }
+  },
+  {
+    id: "incident-response", icon: "🚨", name: "Incident Response & Recovery", sub: "AI-specific IR playbooks & recovery",
+    levels: [
+      "L1 — No AI-specific incident response plan; general IT IR applied ad hoc",
+      "L2 — AI incidents covered in general IR plan; no model-specific runbooks",
+      "L3 — Documented AI incident playbooks; model rollback capability exists; stakeholders identified",
+      "L4 — Tested AI IR exercises; defined RTOs for model recovery; breach notification process for AI incidents",
+      "L5 — Automated AI incident detection and containment; continuous IR improvement; MTTD/MTTR measured"
+    ],
+    checks: [
+      "An AI-specific incident response playbook exists and is maintained",
+      "Model rollback to a known-good version is documented and tested",
+      "Stakeholders and escalation paths for AI incidents are defined",
+      "Breach notification obligations for AI data incidents are understood",
+      "Post-incident reviews for AI events are conducted and documented",
+      "Recovery time objectives (RTOs) for AI systems are defined and tested"
+    ],
+    risk: "AI incidents — model poisoning, prompt injection at scale, or training data breaches — require different response procedures than traditional security incidents. Applying generic IR to AI events causes delayed containment and extended impact.",
+    fw: {
+      owasp: { short: ["A10:SSRF", "LLM general"], refs: ["OWASP A10: SSRF (lateral movement post-compromise)", "NIST IR controls"], note: "Incident response is the backstop for all AI security failures. Without AI-specific playbooks, attacks that breach through LLM01–LLM10 vectors go uncontained." },
+      nist:  { short: ["MANAGE 3.1", "MANAGE 4.2"], refs: ["AI RMF MANAGE 3.1 (Risk response)", "AI RMF MANAGE 4.2 (Incident management)", "SP 800-53 IR-4"], note: "MANAGE 3.1 requires risk response plans. MANAGE 4.2 covers AI-specific incident management. IR-4 is the NIST incident handling control." },
+      iso:   { short: ["10.1", "10.2"], refs: ["ISO 42001 Clause 10.1 (Corrective action)", "ISO 42001 Clause 10.2 (Continual improvement)", "ISO 42001 A.6.5 (Post-deployment)"], note: "Clause 10.1 requires documented corrective action for nonconformities. A.6.5 covers post-deployment monitoring and incident management for AI systems." }
+    }
+  }
+];
+
+// ── State ─────────────────────────────────────────────────────────────────
+let scores       = {};
+let checks       = {};
+let manualScores = {};
+let analysis     = null;
+let baseline     = null; // { scores:{}, date:'', assessmentDate:'' }
+let expanded     = null;
+let autosaveTimer = null;
+
+// ── AI Context panel ──────────────────────────────────────────────────────
+function toggleAiContext() {
+  const body    = document.getElementById('ai-context-body');
+  const chevron = document.getElementById('ai-context-chevron');
+  const open    = body.classList.toggle('open');
+  chevron.classList.toggle('open', open);
+}
+
+function updateContextBadge() {
+  const fields = ['ctx-architecture','ctx-mitigations','ctx-compliance','ctx-risks','ctx-notes'];
+  const hasAny = fields.some(id => document.getElementById(id)?.value.trim()) || !!docText;
+  document.getElementById('ai-context-badge')?.classList.toggle('has-content', hasAny);
+}
+
+// document state
+let docText = '';
+let docName = '';
+let docTruncated = false;
+
+async function handleDocUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  const dropzone = document.getElementById('doc-dropzone');
+  const icon     = document.getElementById('doc-icon');
+  const nameEl   = document.getElementById('doc-name');
+  const metaEl   = document.getElementById('doc-meta');
+  const removeBtn = document.getElementById('doc-remove-btn');
+
+  dropzone.classList.remove('has-file','error');
+  dropzone.classList.add('uploading');
+  dropzone.style.cursor = 'default';
+  icon.textContent = '⏳';
+  nameEl.textContent = file.name;
+  metaEl.textContent = 'Extracting text…';
+  metaEl.className = 'ai-doc-meta';
+  removeBtn.style.display = 'none';
+
+  try {
+    const form = new FormData();
+    form.append('file', file);
+    const res  = await fetch('/api/extract-doc', { method: 'POST', body: form });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Extraction failed');
+
+    docText      = data.text;
+    docName      = data.filename;
+    docTruncated = data.truncated;
+
+    dropzone.classList.remove('uploading');
+    dropzone.classList.add('has-file');
+    icon.textContent = '📋';
+    nameEl.textContent = data.filename;
+    const kb = Math.round(data.chars / 1024 * 10) / 10;
+    metaEl.textContent = docTruncated
+      ? `${kb} KB extracted (document truncated to fit context limit)`
+      : `${kb} KB extracted · Ready to include in analysis`;
+    metaEl.className = docTruncated ? 'ai-doc-meta warn' : 'ai-doc-meta';
+    removeBtn.style.display = '';
+    updateContextBadge();
+    autosave();
+  } catch (err) {
+    docText = ''; docName = ''; docTruncated = false;
+    dropzone.classList.remove('uploading');
+    dropzone.classList.add('error');
+    icon.textContent = '⚠️';
+    nameEl.textContent = 'Upload failed';
+    metaEl.textContent = err.message;
+    metaEl.className = 'ai-doc-meta error';
+    removeBtn.style.display = 'none';
+  }
+  input.value = '';
+}
+
+function removeDoc() {
+  docText = ''; docName = ''; docTruncated = false;
+  document.getElementById('doc-dropzone').classList.remove('has-file','error','uploading');
+  document.getElementById('doc-dropzone').style.cursor = '';
+  document.getElementById('doc-icon').textContent = '📄';
+  document.getElementById('doc-name').textContent = 'Click to upload a PDF, DOCX, or TXT file';
+  document.getElementById('doc-meta').textContent = 'Supports PDF, Word (.docx), plain text, and Markdown · Max 10 MB';
+  document.getElementById('doc-meta').className = 'ai-doc-meta';
+  document.getElementById('doc-remove-btn').style.display = 'none';
+  document.getElementById('doc-file-input').value = '';
+  updateContextBadge();
+  autosave();
+}
+
+function getAiContext() {
+  const val = id => document.getElementById(id)?.value.trim() || '';
+  return {
+    architecture:    val('ctx-architecture'),
+    mitigations:     val('ctx-mitigations'),
+    compliance:      val('ctx-compliance'),
+    risks:           val('ctx-risks'),
+    notes:           val('ctx-notes'),
+    documentText:    docText,
+    documentName:    docName,
+    documentTruncated: docTruncated,
+  };
+}
+
+function setAiContext(ctx) {
+  if (!ctx) return;
+  const set = (id, v) => { const el = document.getElementById(id); if (el && v) el.value = v; };
+  set('ctx-architecture', ctx.architecture);
+  set('ctx-mitigations',  ctx.mitigations);
+  set('ctx-compliance',   ctx.compliance);
+  set('ctx-risks',        ctx.risks);
+  set('ctx-notes',        ctx.notes);
+  if (ctx.documentText) {
+    docText      = ctx.documentText;
+    docName      = ctx.documentName || '';
+    docTruncated = ctx.documentTruncated || false;
+    const dz = document.getElementById('doc-dropzone');
+    if (dz) {
+      dz.classList.add('has-file');
+      document.getElementById('doc-icon').textContent = '📋';
+      document.getElementById('doc-name').textContent = docName || 'Uploaded document';
+      const kb = Math.round(docText.length / 1024 * 10) / 10;
+      const metaEl = document.getElementById('doc-meta');
+      metaEl.textContent = docTruncated ? `${kb} KB extracted (truncated)` : `${kb} KB extracted · Ready to include in analysis`;
+      metaEl.className = docTruncated ? 'ai-doc-meta warn' : 'ai-doc-meta';
+      document.getElementById('doc-remove-btn').style.display = '';
+    }
+  }
+  updateContextBadge();
+}
+
+// ── Branding ──────────────────────────────────────────────────────────────
+let orgLogo = ''; // base64 data URL
+
+function applyBranding() {
+  const name = document.getElementById('brand-name').value.trim() || 'My Organization';
+
+  // Nav
+  const navLogo = document.getElementById('nav-logo');
+  const navFb   = document.getElementById('nav-logo-fb');
+  if (orgLogo) {
+    navLogo.src = orgLogo;
+    navLogo.style.display = 'block';
+    navFb.style.display = 'none';
+  } else {
+    navLogo.style.display = 'none';
+    navFb.style.display = 'block';
+    navFb.textContent = name;
+  }
+
+  // Cover logo
+  const coverImg  = document.getElementById('rpt-cover-logo-img');
+  const coverName = document.getElementById('rpt-cover-logo-name');
+  if (orgLogo) {
+    coverImg.src = orgLogo;
+    coverImg.style.display = 'block';
+    coverName.textContent = '';
+  } else {
+    coverImg.style.display = 'none';
+    coverName.textContent = name;
+  }
+
+  // Footer
+  const footerOrg = document.getElementById('rpt-footer-org');
+  if (footerOrg) footerOrg.textContent = `${name} — Confidential`;
+
+  // Page title
+  document.title = `AI Security Maturity Assessment — ${name}`;
+
+  autosave();
+}
+
+function handleLogoUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    orgLogo = e.target.result;
+    document.getElementById('logo-preview-img').src = orgLogo;
+    document.getElementById('logo-preview-wrap').style.display = 'flex';
+    document.getElementById('logo-upload-prompt').style.display = 'none';
+    applyBranding();
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearLogo() {
+  orgLogo = '';
+  document.getElementById('logo-preview-img').src = '';
+  document.getElementById('logo-preview-wrap').style.display = 'none';
+  document.getElementById('logo-upload-prompt').style.display = '';
+  document.getElementById('logo-file-input').value = '';
+  applyBranding();
+}
+
+// ── Provider settings ─────────────────────────────────────────────────────
+let aiProvider  = 'anthropic';
+let aiModel     = '';
+let providerAvailability = {};
+
+const PROVIDER_MODELS = {
+  anthropic: [
+    { value: 'claude-sonnet-4-6',  label: 'Claude Sonnet 4.6 (recommended)' },
+    { value: 'claude-opus-4-8',    label: 'Claude Opus 4.8' },
+    { value: 'claude-haiku-4-5-20251001', label: 'Claude Haiku 4.5' },
+  ],
+  openai: [
+    { value: 'gpt-4o',        label: 'GPT-4o (recommended)' },
+    { value: 'gpt-4o-mini',   label: 'GPT-4o Mini' },
+    { value: 'gpt-4-turbo',   label: 'GPT-4 Turbo' },
+  ],
+  gemini: [
+    { value: 'gemini-1.5-pro',   label: 'Gemini 1.5 Pro (recommended)' },
+    { value: 'gemini-1.5-flash', label: 'Gemini 1.5 Flash' },
+    { value: 'gemini-2.0-flash', label: 'Gemini 2.0 Flash' },
+  ],
+  azure: [
+    { value: '', label: 'Use deployment from env (AZURE_OPENAI_DEPLOYMENT)' },
+  ],
+};
+
+const PROVIDER_META = {
+  anthropic: { icon: '🟣', name: 'Anthropic Claude' },
+  openai:    { icon: '🟢', name: 'OpenAI' },
+  gemini:    { icon: '🔵', name: 'Google Gemini' },
+  azure:     { icon: '🔷', name: 'Azure / Copilot' },
+};
+
+async function loadProviderAvailability() {
+  try {
+    const res = await fetch('/api/providers');
+    providerAvailability = await res.json();
+  } catch { providerAvailability = {}; }
+  renderProviderGrid();
+}
+
+function renderProviderGrid() {
+  const grid = document.getElementById('provider-grid');
+  if (!grid) return;
+  grid.innerHTML = Object.entries(PROVIDER_META).map(([key, meta]) => {
+    const avail = providerAvailability[key];
+    const sel   = aiProvider === key;
+    return `<div class="provider-card${sel ? ' selected' : ''}${!avail ? ' unavailable' : ''}"
+                 onclick="${avail ? `selectProvider('${key}')` : "showToast('No API key configured for this provider — set the environment variable and restart','error')"}">
+      <span class="provider-icon">${meta.icon}</span>
+      <div class="provider-info">
+        <div class="provider-name">${meta.name}</div>
+        <div class="provider-status ${avail ? 'ok' : 'missing'}">${avail ? '✓ Configured' : '✗ No API key'}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function selectProvider(key) {
+  aiProvider = key;
+  renderProviderGrid();
+  renderModelSelect();
+  const azureFields = document.getElementById('azure-fields');
+  if (azureFields) azureFields.classList.toggle('show', key === 'azure');
+  saveProviderSettings();
+}
+
+function renderModelSelect() {
+  const sel = document.getElementById('ai-model-select');
+  if (!sel) return;
+  const models = PROVIDER_MODELS[aiProvider] || [];
+  sel.innerHTML = models.map(m => `<option value="${m.value}"${m.value === aiModel ? ' selected' : ''}>${m.label}</option>`).join('');
+  if (!aiModel || !models.find(m => m.value === aiModel)) {
+    aiModel = models[0]?.value || '';
+    sel.value = aiModel;
+  }
+}
+
+function saveProviderSettings() {
+  aiModel = document.getElementById('ai-model-select')?.value || '';
+  autosave();
+}
+
+function switchSettingsTab(tab) {
+  document.querySelectorAll('.sm-tab').forEach((t, i) => t.classList.toggle('active', ['branding','ai'][i] === tab));
+  document.querySelectorAll('.sm-tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(`sm-panel-${tab}`)?.classList.add('active');
+  if (tab === 'ai') { loadProviderAvailability(); }
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', async () => {
+  document.getElementById('meta-date').value = new Date().toISOString().slice(0,10);
+  await loadState();
+  // Migrate: clear any out-of-range scores (old 0-3 scale → new CMMC 1-5)
+  DOMAINS.forEach(d => {
+    if (scores[d.id] !== undefined && (scores[d.id] === 0 || scores[d.id] > 5)) {
+      delete scores[d.id];
+      delete manualScores[d.id];
+    }
+  });
+  renderMatrix();
+  renderRefTable();
+  loadProviderAvailability();
+});
+
+// ── Persistence ───────────────────────────────────────────────────────────
+async function loadState() {
+  try {
+    const res = await fetch('/api/state');
+    const data = await res.json();
+    if (data) {
+      scores       = data.scores       || {};
+      checks       = data.checks       || {};
+      manualScores = data.manualScores || {};
+      analysis     = data.analysis     || null;
+      baseline     = data.baseline     || null;
+      if (data.meta) {
+        if (data.meta.team)          document.getElementById('meta-team').value          = data.meta.team;
+        if (data.meta.assessor)      document.getElementById('meta-assessor').value      = data.meta.assessor;
+        if (data.meta.date)          document.getElementById('meta-date').value          = data.meta.date;
+        if (data.meta.server)        document.getElementById('meta-server').value        = data.meta.server;
+        if (data.meta.location)      document.getElementById('meta-location').value      = data.meta.location;
+        if (data.meta.originalDate)  document.getElementById('meta-original-date').value = data.meta.originalDate;
+        if (data.meta.target)        document.getElementById('meta-target').value          = data.meta.target;
+      }
+      if (data.orgName) document.getElementById('brand-name').value = data.orgName;
+      if (data.orgLogo) { orgLogo = data.orgLogo; const pi = document.getElementById('logo-preview-img'); pi.src = orgLogo; document.getElementById('logo-preview-wrap').style.display = 'flex'; document.getElementById('logo-upload-prompt').style.display = 'none'; }
+      applyBranding();
+      if (data.aiContext) setAiContext(data.aiContext);
+      if (data.aiProvider) aiProvider = data.aiProvider;
+      if (data.aiModel)    aiModel    = data.aiModel;
+      renderProviderGrid();
+      renderModelSelect();
+      const azureFields = document.getElementById('azure-fields');
+      if (azureFields) azureFields.classList.toggle('show', aiProvider === 'azure');
+      if (data.notes) document.getElementById('notes-area').value = data.notes;
+      if (analysis) renderAnalysis(analysis);
+    }
+  } catch {}
+}
+
+async function saveState() {
+  const payload = {
+    scores, checks, manualScores, analysis, baseline,
+    orgName: document.getElementById('brand-name').value,
+    orgLogo: orgLogo,
+    aiContext: getAiContext(),
+    aiProvider: aiProvider,
+    aiModel: aiModel,
+    notes: document.getElementById('notes-area').value,
+    meta: {
+      team:         document.getElementById('meta-team').value,
+      assessor:     document.getElementById('meta-assessor').value,
+      date:         document.getElementById('meta-date').value,
+      server:       document.getElementById('meta-server').value,
+      location:     document.getElementById('meta-location').value,
+      originalDate: document.getElementById('meta-original-date').value,
+      target:       document.getElementById('meta-target').value,
+    }
+  };
+  try {
+    await fetch('/api/state', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+    const ind = document.getElementById('save-ind');
+    ind.classList.add('show');
+    setTimeout(() => ind.classList.remove('show'), 2000);
+  } catch { showToast('Save failed', 'error'); }
+}
+
+function autosave() {
+  clearTimeout(autosaveTimer);
+  autosaveTimer = setTimeout(saveState, 1200);
+}
+
+async function resetAll() {
+  if (!confirm('Reset all scores, checks, notes, and AI analysis? This cannot be undone.')) return;
+  scores = {}; checks = {}; manualScores = {}; analysis = null; baseline = null; expanded = null;
+  document.getElementById('notes-area').value = '';
+  document.getElementById('meta-original-date').value = '';
+  ['ctx-architecture','ctx-mitigations','ctx-compliance','ctx-risks','ctx-notes'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  removeDoc();
+  updateContextBadge();
+  document.getElementById('ai-results').style.display = 'none';
+  document.getElementById('ai-status').style.display = 'none';
+  await fetch('/api/state', { method: 'DELETE' });
+  renderMatrix();
+  updateBaselineBanner();
+  showToast('Assessment reset', 'success');
+}
+
+// ── Import / Export JSON ───────────────────────────────────────────────────
+function exportStateJSON() {
+  const payload = {
+    scores, checks, manualScores, analysis, baseline,
+    orgName: document.getElementById('brand-name').value,
+    orgLogo: orgLogo,
+    aiContext: getAiContext(),
+    aiProvider: aiProvider,
+    aiModel: aiModel,
+    notes: document.getElementById('notes-area').value,
+    meta: {
+      team:         document.getElementById('meta-team').value,
+      assessor:     document.getElementById('meta-assessor').value,
+      date:         document.getElementById('meta-date').value,
+      server:       document.getElementById('meta-server').value,
+      location:     document.getElementById('meta-location').value,
+      originalDate: document.getElementById('meta-original-date').value,
+      target:       document.getElementById('meta-target').value,
+    }
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  const server = payload.meta.server ? payload.meta.server.replace(/[^a-z0-9]/gi, '-') : 'assessment';
+  a.download = `ai-assessment-${server}-${payload.meta.date || 'draft'}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function importAssessment(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!data.scores && !data.checks) throw new Error('Not a valid assessment file');
+
+      // If the imported file already has a baseline, preserve it (chain of assessments).
+      // Otherwise snapshot the imported scores as the new baseline.
+      if (data.baseline) {
+        baseline = data.baseline;
+      } else {
+        baseline = {
+          scores: { ...data.scores },
+          date:   data.meta?.date || '',
+        };
+      }
+
+      scores       = data.scores       || {};
+      checks       = data.checks       || {};
+      manualScores = data.manualScores || {};
+      analysis     = data.analysis     || null;
+
+      if (data.meta) {
+        document.getElementById('meta-team').value     = data.meta.team     || '';
+        document.getElementById('meta-assessor').value = data.meta.assessor || '';
+        document.getElementById('meta-server').value   = data.meta.server   || '';
+        document.getElementById('meta-location').value = data.meta.location || '';
+        // Original date = the date on the imported file; current date = today
+        document.getElementById('meta-original-date').value = data.meta.originalDate || data.meta.date || '';
+        document.getElementById('meta-date').value = new Date().toISOString().slice(0, 10);
+      }
+      if (data.orgName) document.getElementById('brand-name').value = data.orgName;
+      if (data.orgLogo) { orgLogo = data.orgLogo; const pi = document.getElementById('logo-preview-img'); pi.src = orgLogo; document.getElementById('logo-preview-wrap').style.display = 'flex'; document.getElementById('logo-upload-prompt').style.display = 'none'; }
+      applyBranding();
+      if (data.aiContext) setAiContext(data.aiContext);
+      if (data.aiProvider) aiProvider = data.aiProvider;
+      if (data.aiModel)    aiModel    = data.aiModel;
+      renderProviderGrid();
+      renderModelSelect();
+      const azureFieldsImp = document.getElementById('azure-fields');
+      if (azureFieldsImp) azureFieldsImp.classList.toggle('show', aiProvider === 'azure');
+      if (data.notes) document.getElementById('notes-area').value = data.notes;
+      if (analysis) renderAnalysis(analysis);
+
+      renderMatrix();
+      updateScoreBanner();
+      updateBaselineBanner();
+      autosave();
+      showToast(`Assessment imported · baseline set to ${baseline.date || 'original'}`, 'success');
+    } catch (err) {
+      showToast('Import failed: ' + err.message, 'error');
+    }
+  };
+  reader.readAsText(file);
+}
+
+function clearBaseline() {
+  baseline = null;
+  document.getElementById('meta-original-date').value = '';
+  updateBaselineBanner();
+  updateScoreBanner();
+  autosave();
+  showToast('Baseline cleared', 'success');
+}
+
+function updateBaselineBanner() {
+  const banner = document.getElementById('baseline-banner');
+  if (!banner) return;
+  if (baseline?.date) {
+    const origDate = document.getElementById('meta-original-date').value || baseline.date;
+    banner.style.display = 'flex';
+    document.getElementById('baseline-date-label').textContent = `Baseline: ${origDate}`;
+    // compute delta summary
+    let improved = 0, same = 0, regressed = 0;
+    DOMAINS.forEach(d => {
+      const cur = scores[d.id] ?? null;
+      const old = baseline.scores?.[d.id] ?? null;
+      if (cur === null || old === null) return;
+      if (cur > old) improved++;
+      else if (cur < old) regressed++;
+      else same++;
+    });
+    document.getElementById('baseline-delta-label').textContent =
+      `${improved} improved · ${same} unchanged · ${regressed} regressed`;
+  } else {
+    banner.style.display = 'none';
+  }
+}
+
+// ── Render matrix ─────────────────────────────────────────────────────────
+function renderMatrix() {
+  const tbody = document.getElementById('tbody');
+  tbody.innerHTML = '';
+
+  DOMAINS.forEach(d => {
+    const score = scores[d.id];
+    const isExp = expanded === d.id;
+
+    const tr = document.createElement('tr');
+    tr.className = isExp ? 'expanded' : '';
+    tr.onclick = () => { expanded = isExp ? null : d.id; renderMatrix(); };
+
+    const sp = score !== undefined
+      ? `<div class="spill sp-${score}">${score}</div>`
+      : `<div class="spill sp-na" style="font-size:10px">—</div>`;
+
+    const fwTags = `<div class="fw-tags">
+      <span class="fwtag fwtag-o">${d.fw.owasp.short[0]}</span>
+      <span class="fwtag fwtag-n">${d.fw.nist.short[0]}</span>
+      <span class="fwtag fwtag-i">${d.fw.iso.short[0]}</span>
+    </div>`;
+
+    tr.innerHTML = `
+      <td class="domain-cell"><span class="icon">${d.icon}</span>${d.name}<span class="sub">${d.sub}</span></td>
+      ${[1,2,3,4,5].map(l => `<td class="level-cell"><span class="lbadge l${l}${score===l?' selected':''}" onclick="setScore(event,'${d.id}',${l})">${d.levels[l-1]}</span></td>`).join('')}
+      <td class="fw-cell screen-only">${fwTags}</td>
+      <td class="score-cell">${sp} <span class="chevron">▼</span></td>
+    `;
+    tbody.appendChild(tr);
+
+    if (isExp) {
+      if (!checks[d.id]) checks[d.id] = new Array(d.checks.length).fill(null);
+      const checkHtml = d.checks.map((c, i) => {
+        const val = checks[d.id][i];
+        return `<li>
+          <div class="yn-btns">
+            <span class="yn-btn yes${val==='yes'?' active':''}" onclick="setCheck(event,'${d.id}',${i},'yes')">Yes</span>
+            <span class="yn-btn no${val==='no'?' active':''}"  onclick="setCheck(event,'${d.id}',${i},'no')">No</span>
+          </div>${c}</li>`;
+      }).join('');
+
+      const yesCount  = checks[d.id].filter(v => v === 'yes').length;
+      const noCount   = checks[d.id].filter(v => v === 'no').length;
+      const answered  = yesCount + noCount;
+      const totalCount = d.checks.length;
+      const isManual = manualScores[d.id];
+
+      const expTr = document.createElement('tr');
+      expTr.className = 'exp-row';
+      expTr.onclick = e => e.stopPropagation();
+      expTr.innerHTML = `<td colspan="7">
+        <div class="exp-content">
+          <div class="exp-section">
+            <h4>Binary Checklist
+              <span style="font-weight:400;color:#94a3b8;margin-left:6px">${yesCount} yes · ${noCount} no · ${totalCount - answered} unanswered</span>
+              ${isManual ? '<span style="font-size:9.5px;background:#ede9fe;color:#5b21b6;padding:1px 6px;border-radius:10px;margin-left:6px;font-weight:600">manual override</span>' : ''}
+            </h4>
+            <ul class="checklist">${checkHtml}</ul>
+          </div>
+          <div class="risk-box">
+            <h4 style="color:#9a3412;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Risk if not addressed</h4>
+            <p>${d.risk}</p>
+          </div>
+          <div class="fw-detail">
+            <div class="fw-block owasp"><h5>OWASP LLM Top 10</h5><p>${d.fw.owasp.refs.join(' · ')}<br><span class="fw-note">${d.fw.owasp.note}</span></p></div>
+            <div class="fw-block nist"><h5>NIST CSF 2.0 / AI RMF</h5><p>${d.fw.nist.refs.join(' · ')}<br><span class="fw-note">${d.fw.nist.note}</span></p></div>
+            <div class="fw-block iso"><h5>ISO/IEC 42001:2023</h5><p>${d.fw.iso.refs.join(' · ')}<br><span class="fw-note">${d.fw.iso.note}</span></p></div>
+          </div>
+        </div>
+      </td>`;
+      tbody.appendChild(expTr);
+    }
+  });
+
+  updateScoreBanner();
+  autosave();
+}
+
+function setScore(e, id, level) {
+  e.stopPropagation();
+  // If clicking the already-selected manual level, remove the manual override
+  if (manualScores[id] && scores[id] === level) {
+    delete manualScores[id];
+    delete scores[id];
+  } else {
+    scores[id] = level;
+    manualScores[id] = true;
+  }
+  renderMatrix();
+}
+
+function setCheck(e, id, idx, value) {
+  e.stopPropagation();
+  const d = DOMAINS.find(d => d.id === id);
+  if (!checks[id]) checks[id] = new Array(d.checks.length).fill(null);
+  // Clicking the active button again clears it back to null
+  checks[id][idx] = checks[id][idx] === value ? null : value;
+  // Auto-compute score unless manually overridden
+  if (!manualScores[id]) {
+    const yesCount = checks[id].filter(v => v === 'yes').length;
+    const answered = checks[id].filter(v => v !== null).length;
+    const total    = d.checks.length;
+    if (answered === 0) {
+      delete scores[id];
+    } else if (yesCount === 0) {
+      scores[id] = 1;                        // all No  → CMMC L1
+    } else if (yesCount === 1) {
+      scores[id] = 2;                        // 1 yes   → CMMC L2
+    } else if (yesCount <= Math.ceil(total * 0.5)) {
+      scores[id] = 3;                        // ~half   → CMMC L3
+    } else if (yesCount < total) {
+      scores[id] = 4;                        // most    → CMMC L4
+    } else {
+      scores[id] = 5;                        // all yes → CMMC L5
+    }
+  }
+  renderMatrix();
+}
+
+// ── Score banner ──────────────────────────────────────────────────────────
+function updateScoreBanner() {
+  const scoredDomains = DOMAINS.filter(d => scores[d.id] !== undefined);
+  const count = scoredDomains.length;
+  const total = scoredDomains.reduce((a, d) => a + scores[d.id], 0);
+  const pct = count > 0 ? total / (DOMAINS.length * 5) : 0;
+
+  document.getElementById('score-num').textContent = count > 0 ? total : '—';
+  document.getElementById('scored-count').textContent = count;
+  document.getElementById('progress-fill').style.width = (count / DOMAINS.length * 100) + '%';
+
+  const pill = document.getElementById('posture-pill');
+  pill.className = 'posture-pill';
+  if (count === 0) { pill.textContent = 'Not assessed';  pill.classList.add('posture-none'); }
+  else if (pct < 0.30) { pill.textContent = 'CMMC L1';   pill.classList.add('posture-critical'); }
+  else if (pct < 0.50) { pill.textContent = 'CMMC L2';   pill.classList.add('posture-developing'); }
+  else if (pct < 0.70) { pill.textContent = 'CMMC L3';   pill.classList.add('posture-managed'); }
+  else if (pct < 0.88) { pill.textContent = 'CMMC L4';   pill.classList.add('posture-optimized'); }
+  else                 { pill.textContent = 'CMMC L5';   pill.classList.add('posture-optimized'); }
+
+  const pills = document.getElementById('domain-pills');
+  pills.innerHTML = DOMAINS.map(d => {
+    const s = scores[d.id];
+    const cls = s !== undefined ? `dpill-${s}` : 'dpill-na';
+    const label = s !== undefined ? `L${s}` : '—';
+    return `<span class="dpill ${cls}" title="${d.name}">${d.icon} ${label}</span>`;
+  }).join('');
+
+  renderCharts();
+  updateBaselineBanner();
+}
+
+// ── Charts ────────────────────────────────────────────────────────────────
+const SCORE_COLORS = ['#fca5a5','#fcd34d','#93c5fd','#c4b5fd','#6ee7b7'];
+const SCORE_LABELS = ['L1 – Basic','L2 – Intermediate','L3 – Good','L4 – Proactive','L5 – Advanced'];
+const CMMC_LEVEL_NAMES = ['Basic Cyber Hygiene','Intermediate Cyber Hygiene','Good Cyber Hygiene','Proactive','Advanced / Progressive'];
+
+function renderSpiderChart(containerW) {
+  const svg = document.getElementById('spider-chart');
+  if (!svg) return;
+
+  // Measure actual container width if not provided
+  const W = containerW || svg.parentElement.clientWidth - 36 || 300;
+  // Reserve label margin as fraction of total width; chart sits in the inner box
+  const labelPad = Math.round(W * 0.18);
+  const H = Math.round(W * 0.82);
+  const cx = W / 2, cy = H / 2 + labelPad * 0.15;
+  const R  = Math.min(W - 2 * labelPad, H - 2 * labelPad) / 2;
+  const n  = DOMAINS.length;
+  const angleStep  = (2 * Math.PI) / n;
+  const startAngle = -Math.PI / 2;
+  // fontSize scales so text renders at ~13px regardless of how large the viewBox is
+  const fontSize = (13 * H) / 300;
+  const dotR       = Math.max(3, W / 90);
+
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+
+  const pts = (r) => DOMAINS.map((_, i) => {
+    const a = startAngle + i * angleStep;
+    return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+  });
+
+  let html = '';
+
+  // Grid rings L1–L5
+  for (let lvl = 5; lvl >= 1; lvl--) {
+    const r = (lvl / 5) * R;
+    const rPts = pts(r).map(p => p.join(',')).join(' ');
+    html += `<polygon points="${rPts}" fill="${lvl === 5 ? '#f5f3ff' : 'none'}" stroke="#e2e8f0" stroke-width="${lvl === 5 ? 1 : 0.7}"/>`;
+  }
+
+  // Spokes + labels
+  DOMAINS.forEach((d, i) => {
+    const a  = startAngle + i * angleStep;
+    const ex = cx + R * Math.cos(a), ey = cy + R * Math.sin(a);
+    html += `<line x1="${cx}" y1="${cy}" x2="${ex}" y2="${ey}" stroke="#e2e8f0" stroke-width="0.8"/>`;
+
+    const gap = R + fontSize * 1.4;
+    const lx  = cx + gap * Math.cos(a);
+    const ly  = cy + gap * Math.sin(a);
+    const anchor = Math.abs(Math.cos(a)) < 0.15 ? 'middle' : Math.cos(a) > 0 ? 'start' : 'end';
+
+    const short = d.name
+      .replace('& Privilege Escalation', '').replace('& Confidentiality', '')
+      .replace('& Monitoring', '').replace('Tool & Resource Scope', 'Tool Scope').trim();
+    const words = short.split(' ');
+
+    if (words.length <= 2) {
+      html += `<text x="${lx}" y="${ly + fontSize * 0.4}" font-size="${fontSize}" text-anchor="${anchor}" fill="#475569" font-family="sans-serif">${short}</text>`;
+    } else {
+      const mid  = Math.ceil(words.length / 2);
+      const l1   = words.slice(0, mid).join(' ');
+      const l2   = words.slice(mid).join(' ');
+      const offY = Math.sin(a) > 0.2 ? 0 : Math.sin(a) < -0.2 ? -fontSize : -fontSize * 0.5;
+      html += `<text x="${lx}" y="${ly + offY}" font-size="${fontSize}" text-anchor="${anchor}" fill="#475569" font-family="sans-serif">
+        <tspan x="${lx}" dy="0">${l1}</tspan>
+        <tspan x="${lx}" dy="${fontSize * 1.2}">${l2}</tspan>
+      </text>`;
+    }
+  });
+
+  // Baseline polygon
+  if (baseline?.scores) {
+    const bPts = DOMAINS.map((d, i) => {
+      const val = baseline.scores[d.id] ?? 0;
+      const a   = startAngle + i * angleStep;
+      return [cx + (val / 5) * R * Math.cos(a), cy + (val / 5) * R * Math.sin(a)];
+    });
+    html += `<polygon points="${bPts.map(p => p.join(',')).join(' ')}" fill="#f59e0b" fill-opacity="0.10" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="4 3" stroke-linejoin="round"/>`;
+  }
+
+  // Current polygon
+  const anyScored = DOMAINS.some(d => scores[d.id] !== undefined);
+  const dataPts   = DOMAINS.map((d, i) => {
+    const val = scores[d.id] !== undefined ? scores[d.id] : 0;
+    const r   = anyScored ? (val / 5) * R : 0;
+    const a   = startAngle + i * angleStep;
+    return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+  });
+  html += `<polygon points="${dataPts.map(p => p.join(',')).join(' ')}" fill="#7c3aed" fill-opacity="0.18" stroke="#7c3aed" stroke-width="2" stroke-linejoin="round"/>`;
+
+  dataPts.forEach(([x, y], i) => {
+    if (scores[DOMAINS[i].id] !== undefined)
+      html += `<circle cx="${x}" cy="${y}" r="${dotR}" fill="#7c3aed" stroke="white" stroke-width="1.5"/>`;
+  });
+
+  // Target polygon
+  const targetVal = parseInt(document.getElementById('meta-target')?.value || '0');
+  if (targetVal >= 1) {
+    const tPts = pts((targetVal / 5) * R);
+    html += `<polygon points="${tPts.map(p => p.join(',')).join(' ')}" fill="#10b981" fill-opacity="0.08" stroke="#10b981" stroke-width="1.8" stroke-dasharray="5 3" stroke-linejoin="round"/>`;
+  }
+
+  // Centre dot
+  html += `<circle cx="${cx}" cy="${cy}" r="${dotR - 1}" fill="#e2e8f0"/>`;
+
+  // Ring level labels
+  [1, 2, 3, 4, 5].forEach(lvl => {
+    const ty = cy - (lvl / 5) * R + fontSize * 0.45;
+    html += `<text x="${cx + 3}" y="${ty}" font-size="${fontSize * 0.85}" fill="#94a3b8" font-family="sans-serif">L${lvl}</text>`;
+  });
+
+  // Legend
+  const lfs = Math.max(6.5, fontSize * 0.85);
+  const lx0 = 6;
+  let ly0 = 6;
+  const sw = 10, sh = 10, gap2 = sh + 6;
+  html += `<rect x="${lx0}" y="${ly0}" width="${sw}" height="${sh}" fill="#7c3aed" fill-opacity="0.3" stroke="#7c3aed" stroke-width="1.5" rx="2"/>`;
+  html += `<text x="${lx0 + sw + 4}" y="${ly0 + sh * 0.75}" font-size="${lfs}" fill="#475569" font-family="sans-serif">Current</text>`;
+  ly0 += gap2;
+  if (baseline?.scores) {
+    html += `<line x1="${lx0}" y1="${ly0 + sh / 2}" x2="${lx0 + sw}" y2="${ly0 + sh / 2}" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="4 3"/>`;
+    html += `<text x="${lx0 + sw + 4}" y="${ly0 + sh * 0.75}" font-size="${lfs}" fill="#475569" font-family="sans-serif">Baseline (${baseline.date || 'prior'})</text>`;
+    ly0 += gap2;
+  }
+  if (targetVal >= 1) {
+    html += `<line x1="${lx0}" y1="${ly0 + sh / 2}" x2="${lx0 + sw}" y2="${ly0 + sh / 2}" stroke="#10b981" stroke-width="1.8" stroke-dasharray="5 3"/>`;
+    html += `<text x="${lx0 + sw + 4}" y="${ly0 + sh * 0.75}" font-size="${lfs}" fill="#475569" font-family="sans-serif">Target L${targetVal}</text>`;
+  }
+
+  svg.innerHTML = html;
+}
+
+function renderBarChart(containerW) {
+  const svg = document.getElementById('bar-chart');
+  if (!svg) return;
+
+  const W       = containerW || svg.parentElement.clientWidth - 36 || 300;
+  const marginL = Math.round(W * 0.055);
+  const marginR = Math.round(W * 0.02);
+  const marginT = Math.round(W * 0.07);
+  const marginB = Math.round(W * 0.25); // room for rotated labels
+  const H       = Math.round(W * 0.75);
+  const chartW  = W - marginL - marginR;
+  const chartH  = H - marginT - marginB;
+  const n       = DOMAINS.length;
+  const slot    = Math.floor(chartW / n);
+  const gap     = Math.max(2, Math.floor(slot * 0.12));
+  const barW    = slot - gap;
+  // fontSize scales so text renders at ~13px regardless of how large the viewBox is
+  const fontSize = (13 * H) / 300;
+
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+
+  let html = '';
+
+  // Y grid lines
+  for (let lvl = 0; lvl <= 5; lvl++) {
+    const y = marginT + chartH - (lvl / 5) * chartH;
+    html += `<line x1="${marginL}" y1="${y}" x2="${W - marginR}" y2="${y}" stroke="${lvl === 0 ? '#cbd5e1' : '#e2e8f0'}" stroke-width="${lvl === 0 ? 1 : 0.7}"/>`;
+    html += `<text x="${marginL - 2}" y="${y + fontSize * 0.45}" font-size="${fontSize * 0.85}" text-anchor="end" fill="#94a3b8" font-family="sans-serif">${lvl === 0 ? '' : `L${lvl}`}</text>`;
+  }
+
+  // Target reference line
+  const barTargetVal = parseInt(document.getElementById('meta-target')?.value || '0');
+  if (barTargetVal >= 1) {
+    const ty = marginT + chartH - (barTargetVal / 5) * chartH;
+    html += `<line x1="${marginL}" y1="${ty}" x2="${W - marginR}" y2="${ty}" stroke="#10b981" stroke-width="1.8" stroke-dasharray="6 3"/>`;
+    html += `<text x="${W - marginR + 2}" y="${ty + fontSize * 0.4}" font-size="${fontSize * 0.82}" fill="#10b981" font-family="sans-serif" font-weight="600">Target L${barTargetVal}</text>`;
+  }
+
+  const hasBase = !!(baseline?.scores);
+  const pairGap = 1;
+  const pairW   = hasBase ? Math.floor((barW - pairGap) / 2) : barW;
+
+  DOMAINS.forEach((d, i) => {
+    const slotX = marginL + i * slot + Math.floor(gap / 2);
+    const val   = scores[d.id] !== undefined ? scores[d.id] : null;
+    const bval  = hasBase ? (baseline.scores[d.id] !== undefined ? baseline.scores[d.id] : null) : null;
+
+    html += `<rect x="${slotX}" y="${marginT}" width="${barW}" height="${chartH}" fill="#f8fafc" rx="2"/>`;
+
+    // Baseline bar
+    if (hasBase && bval !== null) {
+      const bH = (bval / 5) * chartH;
+      const by = marginT + chartH - bH;
+      html += `<rect x="${slotX}" y="${by}" width="${pairW}" height="${bH}" fill="#fde68a" stroke="#f59e0b" stroke-width="0.8" rx="2"/>`;
+      if (bval > 0) html += `<text x="${slotX + pairW / 2}" y="${by - 2}" font-size="${fontSize * 0.85}" text-anchor="middle" fill="#92400e" font-family="sans-serif">${bval}</text>`;
+    }
+
+    // Current bar
+    const bx2 = hasBase ? slotX + pairW + pairGap : slotX;
+    const cw  = hasBase ? pairW : barW;
+    if (val !== null) {
+      const cH    = (val / 5) * chartH;
+      const cy2   = marginT + chartH - cH;
+      const color = SCORE_COLORS[val - 1];
+      const strk  = '#7c3aed';
+      html += `<rect x="${bx2}" y="${cy2}" width="${cw}" height="${cH}" fill="${color}" stroke="${strk}" stroke-width="0.8" rx="2"/>`;
+      if (hasBase && bval !== null && val !== bval) {
+        const arrow  = val > bval ? '▲' : '▼';
+        const aColor = val > bval ? '#059669' : '#dc2626';
+        html += `<text x="${slotX + barW / 2}" y="${cy2 - 2}" font-size="${fontSize * 0.85}" text-anchor="middle" fill="${aColor}" font-weight="700" font-family="sans-serif">${arrow}</text>`;
+      } else if (val > 0) {
+        html += `<text x="${bx2 + cw / 2}" y="${cy2 - 2}" font-size="${fontSize}" text-anchor="middle" fill="#5b21b6" font-weight="700" font-family="sans-serif">${val}</text>`;
+      }
+    } else {
+      html += `<text x="${bx2 + cw / 2}" y="${marginT + chartH - 4}" font-size="${fontSize}" text-anchor="middle" fill="#cbd5e1" font-family="sans-serif">—</text>`;
+    }
+
+    // X-axis label (rotated)
+    const short = d.name
+      .replace('& Privilege Escalation', '').replace('& Confidentiality', '')
+      .replace('& Monitoring', '').replace('Tool & Resource Scope', 'Tool Scope').trim();
+    const lx = slotX + barW / 2;
+    const ly = marginT + chartH + fontSize * 1.1;
+    html += `<text transform="rotate(-38 ${lx} ${ly})" x="${lx}" y="${ly}" font-size="${fontSize}" text-anchor="end" fill="#475569" font-family="sans-serif">${short}</text>`;
+  });
+
+  // Legend
+  const lgY = H - fontSize * 0.8;
+  const sw  = fontSize * 1.1, sh = fontSize * 1.1;
+  if (hasBase) {
+    html += `<rect x="${marginL}" y="${lgY - sh}" width="${sw}" height="${sh}" fill="#fde68a" stroke="#f59e0b" stroke-width="0.8" rx="2"/>`;
+    html += `<text x="${marginL + sw + 4}" y="${lgY - 1}" font-size="${fontSize}" fill="#64748b" font-family="sans-serif">Baseline (${baseline.date || 'prior'})</text>`;
+    const lgX2 = marginL + W * 0.38;
+    html += `<rect x="${lgX2}" y="${lgY - sh}" width="${sw}" height="${sh}" fill="#818cf8" stroke="#7c3aed" stroke-width="0.8" rx="2"/>`;
+    html += `<text x="${lgX2 + sw + 4}" y="${lgY - 1}" font-size="${fontSize}" fill="#64748b" font-family="sans-serif">Current · ▲▼ change</text>`;
+  } else {
+    SCORE_LABELS.forEach((lbl, i) => {
+      const lx = marginL + i * (W / 4.2);
+      html += `<rect x="${lx}" y="${lgY - sh}" width="${sw}" height="${sh}" fill="${SCORE_COLORS[i]}" stroke="#7c3aed" stroke-width="0.8" rx="2"/>`;
+      html += `<text x="${lx + sw + 4}" y="${lgY - 1}" font-size="${fontSize}" fill="#64748b" font-family="sans-serif">L${i + 1} – ${lbl}</text>`;
+    });
+  }
+
+  svg.innerHTML = html;
+}
+
+function renderCharts() {
+  // Measure each card's inner width (subtract padding) and pass to each renderer
+  const spiderSvg = document.getElementById('spider-chart');
+  const barSvg    = document.getElementById('bar-chart');
+  if (spiderSvg) {
+    const w = spiderSvg.parentElement.clientWidth - 36;
+    if (w > 0) renderSpiderChart(w);
+  }
+  if (barSvg) {
+    const w = barSvg.parentElement.clientWidth - 36;
+    if (w > 0) renderBarChart(w);
+  }
+}
+
+// Re-render charts whenever the container resizes
+if (typeof ResizeObserver !== 'undefined') {
+  const _chartRow = document.querySelector('.charts-row');
+  if (_chartRow) {
+    new ResizeObserver(() => renderCharts()).observe(_chartRow);
+  }
+}
+
+// ── Framework ref tab ─────────────────────────────────────────────────────
+function renderRefTable() {
+  const tbody = document.getElementById('ref-tbody');
+  tbody.innerHTML = '';
+  DOMAINS.forEach(d => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="font-weight:600;font-size:12px">${d.icon} ${d.name}</td>
+      <td>${d.fw.owasp.refs.map(r=>`<span class="fwtag fwtag-o">${r}</span>`).join(' ')}<br><span style="font-size:10.5px;color:#475569;line-height:1.5;display:block;margin-top:4px">${d.fw.owasp.note}</span></td>
+      <td>${d.fw.nist.refs.map(r=>`<span class="fwtag fwtag-n">${r}</span>`).join(' ')}<br><span style="font-size:10.5px;color:#475569;line-height:1.5;display:block;margin-top:4px">${d.fw.nist.note}</span></td>
+      <td>${d.fw.iso.refs.map(r=>`<span class="fwtag fwtag-i">${r}</span>`).join(' ')}<br><span style="font-size:10.5px;color:#475569;line-height:1.5;display:block;margin-top:4px">${d.fw.iso.note}</span></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// ── Tab switching ─────────────────────────────────────────────────────────
+const ALL_TABS = ['matrix', 'frameworks', 'ai', 'roadmap', 'notes'];
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', ALL_TABS[i] === tab));
+  ALL_TABS.forEach(t => {
+    const el = document.getElementById(`panel-${t}`);
+    if (el) el.style.display = t === tab ? '' : 'none';
+  });
+}
+
+// ── AI Analysis ───────────────────────────────────────────────────────────
+async function runAnalysis() {
+  const btn = document.getElementById('analyze-btn');
+  const status = document.getElementById('ai-status');
+  btn.disabled = true;
+  btn.textContent = 'Analyzing…';
+  status.style.display = 'flex';
+  status.innerHTML = '<div class="ai-spinner"></div> Sending assessment to Claude — this takes about 15 seconds…';
+  document.getElementById('ai-results').style.display = 'none';
+
+  const meta = {
+    team:     document.getElementById('meta-team').value,
+    assessor: document.getElementById('meta-assessor').value,
+    date:     document.getElementById('meta-date').value,
+    server:   document.getElementById('meta-server').value,
+    location: document.getElementById('meta-location').value,
+  };
+
+  try {
+    const res = await fetch('/api/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ meta, scores, checks, domains: DOMAINS, baseline, target: document.getElementById('meta-target').value, orgName: document.getElementById('brand-name').value, provider: aiProvider, model: aiModel, aiContext: getAiContext() })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Analysis failed');
+
+    analysis = data.analysis;
+    await saveState();
+    renderAnalysis(analysis);
+    status.style.display = 'none';
+    showToast('Analysis complete', 'success');
+  } catch (err) {
+    status.innerHTML = `<span style="color:#dc2626">✕ ${err.message}</span>`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '✦ Re-run Analysis';
+  }
+}
+
+function renderAnalysis(a) {
+  if (!a) return;
+  document.getElementById('ai-results').style.display = '';
+
+  // Executive summary
+  document.getElementById('ai-exec-summary').innerHTML =
+    a.executive_summary.split('\n\n').map(p => `<p>${p}</p>`).join('');
+
+  // Key findings
+  const findingsEl = document.getElementById('ai-findings');
+  findingsEl.innerHTML = (a.key_findings || []).map(f => `
+    <div class="ai-finding">
+      <span class="sev-badge sev-${(f.severity||'medium').toLowerCase()}">${f.severity}</span>
+      <div class="ai-finding-text">
+        <strong>${f.title}</strong>
+        <span>${f.detail}</span>
+      </div>
+    </div>`).join('');
+
+  // Recommendations
+  const sevOrder = { critical: 0, high: 1, medium: 2, low: 3 };
+  const recs = [...(a.recommendations || [])].sort((a, b) =>
+    (sevOrder[a.severity?.toLowerCase()] ?? 4) - (sevOrder[b.severity?.toLowerCase()] ?? 4));
+  document.getElementById('ai-recommendations').innerHTML = recs.map(r => {
+    const sev = (r.severity || 'medium').toLowerCase();
+    const cls = sev[0]; // c/h/m/l
+    return `<div class="ai-rec sev-${cls}">
+      <div class="ai-rec-header">
+        <span class="sev-badge sev-${sev}">${r.severity}</span>
+        <span class="ai-rec-domain">${r.domain}</span>
+        <span style="font-size:11px;color:#94a3b8">Current: L${r.current_level ?? '?'}</span>
+      </div>
+      <div class="ai-rec-gap">${r.gap}</div>
+      <div class="ai-rec-text">${r.recommendation}</div>
+      <div class="ai-rec-meta">
+        <span class="ai-rec-tag ai-rec-effort">Effort: ${r.effort}</span>
+        <span class="ai-rec-tag ai-rec-effort">Impact: ${r.impact}</span>
+        <span class="ai-rec-tag ai-rec-fw">${r.owasp_ref}</span>
+        <span class="ai-rec-tag ai-rec-fw">${r.nist_ref}</span>
+        <span class="ai-rec-tag ai-rec-fw">${r.iso_ref}</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Roadmap (AI Analysis tab — compact horizon view)
+  const rm = a.roadmap || {};
+  document.getElementById('ai-roadmap').innerHTML = `
+    <div class="roadmap-grid">
+      ${[['immediate','🔴 Immediate','immediate'],['short_term','🟡 Short-term (30–90 days)','short-term'],['long_term','🟢 Long-term (90+ days)','long-term']].map(([key, label, cls]) => `
+        <div class="roadmap-col ${cls}">
+          <h4>${label}</h4>
+          ${(rm[key] || []).map(item => `
+            <div class="roadmap-item">
+              ${item.action}
+              <span class="ri-domain">${item.domain}</span>
+              <span class="ri-owner">→ ${item.owner}</span>
+            </div>`).join('')}
+        </div>`).join('')}
+    </div>`;
+
+  // Closing
+  document.getElementById('ai-closing').textContent = a.closing_statement || '';
+
+  // ── Roadmap tab ──
+  renderRoadmapTab(a);
+}
+
+function renderRoadmapTab(a) {
+  const workstreams = a?.workstreams;
+  const empty = document.getElementById('roadmap-empty');
+  const content = document.getElementById('roadmap-content');
+
+  if (!workstreams?.length) {
+    empty.style.display = '';
+    content.style.display = 'none';
+    return;
+  }
+  empty.style.display = 'none';
+  content.style.display = '';
+
+  // Horizon summary chips
+  const horizonCounts = { immediate: 0, short_term: 0, long_term: 0 };
+  workstreams.forEach(ws => (ws.items || []).forEach(item => {
+    if (horizonCounts[item.horizon] !== undefined) horizonCounts[item.horizon]++;
+  }));
+  const horizonLabels = { immediate: '🔴 Immediate', short_term: '🟡 Short-term', long_term: '🟢 Long-term' };
+  document.getElementById('rm-horizon-summary').innerHTML = Object.entries(horizonCounts)
+    .filter(([, n]) => n > 0)
+    .map(([k, n]) => `<div class="rm-horizon-chip ${k}">${horizonLabels[k]} · ${n}</div>`)
+    .join('');
+
+  // Workstream cards
+  const effortLabel = { S: 'Small', M: 'Medium', L: 'Large' };
+  document.getElementById('rm-workstreams').innerHTML = workstreams.map(ws => {
+    const pri = ws.priority || 'Medium';
+    const domainTags = (ws.domains || []).map(d => `<span class="rm-ws-domain-tag">${d}</span>`).join('');
+    const targetGap = ws.target_gap ? `<span class="rm-ws-target-gap">🎯 ${ws.target_gap}</span>` : '';
+    const itemRows = (ws.items || []).map(item => {
+      const hz = item.horizon || 'long_term';
+      const hzLabel = { immediate: '🔴 Now', short_term: '🟡 30–90d', long_term: '🟢 90d+' }[hz] || hz;
+      return `<div class="rm-item-row">
+        <div><span class="rm-item-horizon ${hz}">${hzLabel}</span></div>
+        <div>
+          <div class="rm-item-action">${item.action}</div>
+          <div class="rm-item-outcome">${item.outcome || ''}</div>
+        </div>
+        <div class="rm-item-meta">
+          <span class="rm-item-owner">${item.owner || ''}</span>
+          <span class="rm-item-effort">${effortLabel[item.effort] || item.effort || ''}</span>
+        </div>
+      </div>`;
+    }).join('');
+
+    return `<div class="rm-ws-card pri-${pri}">
+      <div class="rm-ws-head">
+        <div class="rm-ws-meta">
+          <div class="rm-ws-epic">${ws.epic_title || ws.name}</div>
+          <div class="rm-ws-impact">${ws.business_impact || ''}</div>
+          <div class="rm-ws-tags">
+            <span class="rm-ws-pri ${pri}">${pri}</span>
+            ${domainTags}
+            ${targetGap}
+          </div>
+          ${ws.risk_driver ? `<div class="rm-ws-risk">⚠ ${ws.risk_driver}</div>` : ''}
+        </div>
+      </div>
+      <div class="rm-ws-items">
+        <div class="rm-items-header">
+          <span>Horizon</span><span>Action &amp; Outcome</span><span>Owner / Size</span>
+        </div>
+        ${itemRows}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── PDF export ────────────────────────────────────────────────────────────
+function exportPDF() {
+  applyBranding();
+  const meta = {
+    team:     document.getElementById('meta-team').value     || '—',
+    assessor: document.getElementById('meta-assessor').value || '—',
+    date:     document.getElementById('meta-date').value     || '—',
+    server:   document.getElementById('meta-server').value   || '—',
+    location: document.getElementById('meta-location').value || '—',
+  };
+
+  const totalScore = DOMAINS.reduce((s, d) => s + (scores[d.id] ?? 0), 0);
+  const maxScore   = DOMAINS.length * 5;
+  const pct        = totalScore / maxScore;
+  const postureKey = pct < 0.30 ? 'critical' : pct < 0.50 ? 'developing' : pct < 0.70 ? 'managed' : 'optimized';
+  const postureLabel = { critical: 'Critical Gaps', developing: 'Developing', managed: 'Managed', optimized: 'Optimized' }[postureKey];
+  const now = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+  // ── Cover ──
+  document.getElementById('cv-team').textContent     = meta.team;
+  document.getElementById('cv-server').textContent   = meta.server;
+  document.getElementById('cv-location').textContent = meta.location;
+  document.getElementById('cv-date').textContent     = meta.date;
+  document.getElementById('cv-assessor').textContent = meta.assessor;
+  document.getElementById('cv-score').textContent    = `${totalScore} / ${maxScore}`;
+  const cvPosture = document.getElementById('cv-posture');
+  cvPosture.textContent = postureLabel;
+  cvPosture.className = `rpt-posture-badge ${postureKey}`;
+
+  // ── Exec page — copy live charts into print SVGs (viewBox + content) ──
+  const _screenSpider = document.getElementById('spider-chart');
+  const _screenBar    = document.getElementById('bar-chart');
+  const _rptSpider    = document.getElementById('rpt-spider');
+  const _rptBar       = document.getElementById('rpt-bar');
+  _rptSpider.setAttribute('viewBox', _screenSpider.getAttribute('viewBox'));
+  _rptBar.setAttribute('viewBox',    _screenBar.getAttribute('viewBox'));
+  _rptSpider.innerHTML = _screenSpider.innerHTML;
+  _rptBar.innerHTML    = _screenBar.innerHTML;
+
+  // ── Exec page ──
+  document.getElementById('rpt-date-header').textContent  = `Generated ${now}`;
+  document.getElementById('rpt-date-header2').textContent = `Generated ${now}`;
+  document.getElementById('rpt-score-num').textContent    = `${totalScore} / ${maxScore}`;
+  const rptBadge = document.getElementById('rpt-posture-badge');
+  rptBadge.textContent = postureLabel;
+  rptBadge.className = `rpt-posture-badge ${postureKey}`;
+
+  // Score bars per domain
+  document.getElementById('rpt-score-bars').innerHTML = DOMAINS.map(d => {
+    const s = scores[d.id] ?? 0;
+    const fillPct = (s / 5) * 100;
+    const color = s <= 1 ? '#ef4444' : s === 2 ? '#f59e0b' : s === 3 ? '#3b82f6' : s === 4 ? '#8b5cf6' : '#10b981';
+    const lbl = s > 0 ? `L${s}` : '—';
+    return `<div class="rpt-bar-row">
+      <div class="rpt-bar-label">${d.icon} ${d.name}</div>
+      <div class="rpt-bar-track"><div class="rpt-bar-fill" style="width:${fillPct}%;background:${color}"></div></div>
+      <div class="rpt-bar-val" style="color:${color}">${lbl}</div>
+    </div>`;
+  }).join('');
+
+  // AI exec summary in report
+  const rptExec = document.getElementById('rpt-exec-summary');
+  if (analysis?.executive_summary) {
+    rptExec.innerHTML = analysis.executive_summary.split('\n\n').map(p => `<p>${p}</p>`).join('');
+  } else {
+    const gaps = DOMAINS.filter(d => (scores[d.id] ?? 0) < 2).map(d => d.name);
+    rptExec.innerHTML = `<p>This report presents the results of an AI system security maturity assessment for <strong>${meta.team}</strong>, conducted on ${meta.date} by ${meta.assessor}. The assessment evaluated ${DOMAINS.length} security domains against industry frameworks including OWASP LLM Top 10 (2025), NIST AI RMF, ISO/IEC 42001:2023, and MITRE ATLAS.</p>
+    <p>The overall score of <strong>${totalScore} out of ${maxScore}</strong> (${Math.round(pct * 100)}%) indicates a <strong>${postureLabel}</strong> security posture.${gaps.length ? ` Domains requiring immediate attention include: ${gaps.join(', ')}.` : ' All domains have reached a managed baseline.'}</p>
+    <p>Run the AI Analysis tab to generate a detailed evaluation and remediation recommendations from Claude.</p>`;
+  }
+
+  // ── Findings table ──
+  const sevOrder = { 0: 'Critical', 1: 'High', 2: 'Medium', 3: 'Low' };
+  const sevClass = { Critical: 'critical', High: 'high', Medium: 'medium', Low: 'low' };
+  const sevDot   = { Critical: 'dot-critical', High: 'dot-high', Medium: 'dot-medium', Low: 'dot-low' };
+
+  // Build findings from AI recs if available, otherwise from scores
+  let findings = [];
+  if (analysis?.recommendations?.length) {
+    findings = [...analysis.recommendations].sort((a, b) => {
+      const o = { Critical: 0, High: 1, Medium: 2, Low: 3 };
+      return (o[a.severity] ?? 4) - (o[b.severity] ?? 4);
+    });
+  } else {
+    findings = DOMAINS.map(d => {
+      const s = scores[d.id] ?? 0;
+      return { domain: d.name, severity: sevOrder[s] ?? 'Low', current_level: s,
+        gap: s < 3 ? `Current maturity is Level ${s} — ${d.levels[s]}` : 'Fully optimized',
+        owasp_ref: d.fw.owasp.short[0], nist_ref: d.fw.nist.short[0], iso_ref: d.fw.iso.short[0] };
+    }).filter(f => f.current_level < 3)
+      .sort((a, b) => { const o = { Critical:0,High:1,Medium:2,Low:3 }; return (o[a.severity]??4)-(o[b.severity]??4); });
+  }
+
+  const ftbody = document.getElementById('rpt-findings-tbody');
+  ftbody.innerHTML = findings.map(f => {
+    const sev = f.severity || 'Medium';
+    const dot = sevDot[sev] || 'dot-medium';
+    return `<tr>
+      <td><span class="sev-dot ${dot}"></span>${sev}</td>
+      <td>${f.domain}</td>
+      <td style="text-align:center;font-weight:700">L${f.current_level ?? '?'}</td>
+      <td>${f.gap || '—'}</td>
+      <td style="font-size:8pt">${f.owasp_ref || '—'}</td>
+      <td style="font-size:8pt">${f.nist_ref  || '—'}</td>
+      <td style="font-size:8pt">${f.iso_ref   || '—'}</td>
+    </tr>`;
+  }).join('');
+
+  // ── Checklist detail ──
+  document.getElementById('rpt-checklist-content').innerHTML = DOMAINS.map(d => {
+    const s = scores[d.id] ?? 0;
+    const domChecks = checks[d.id] || new Array(d.checks.length).fill(null);
+    const color = s === 0 ? '#ef4444' : s === 1 ? '#f59e0b' : s === 2 ? '#3b82f6' : '#10b981';
+    return `<div class="rpt-domain-block">
+      <div class="rpt-domain-header">
+        <strong>${d.icon} ${d.name}</strong>
+        <span class="rpt-domain-score" style="color:${color}">Level ${s} — ${['None','Basic','Managed','Optimized'][s]}</span>
+      </div>
+      <div class="rpt-check-grid">
+        ${d.checks.map((c, i) => `
+          <div class="rpt-check-item">
+            <span class="rpt-check-icon">${domChecks[i]==='yes' ? '✅' : domChecks[i]==='no' ? '❌' : '☐'}</span>${c}
+          </div>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+
+  // ── AI recommendations section ──
+  const aiSection = document.getElementById('rpt-ai-section');
+  if (analysis?.recommendations?.length) {
+    aiSection.classList.remove('empty');
+    const sortedRecs = [...analysis.recommendations].sort((a, b) => {
+      const o = { Critical:0, High:1, Medium:2, Low:3 };
+      return (o[a.severity]??4) - (o[b.severity]??4);
+    });
+    document.getElementById('rpt-ai-recommendations').innerHTML = sortedRecs.map(r => {
+      const sev = (r.severity || 'Medium').toLowerCase();
+      const cls = { critical:'rc', high:'rh', medium:'rm', low:'rl' }[sev] || 'rm';
+      return `<div class="rpt-ai-rec ${cls}">
+        <div class="rpt-ai-rec-head">
+          <span class="sev-badge sev-${sev}">${r.severity}</span>
+          <strong>${r.domain}</strong>
+          <span style="font-size:8pt;color:#94a3b8">Current: L${r.current_level ?? '?'} → Target: L3</span>
+        </div>
+        <div class="rpt-ai-rec-gap">${r.gap}</div>
+        <div class="rpt-ai-rec-text">${r.recommendation}</div>
+        <div class="rpt-ai-rec-tags">
+          <span class="rpt-tag rpt-tag-effort">Effort: ${r.effort}</span>
+          <span class="rpt-tag rpt-tag-effort">Impact: ${r.impact}</span>
+          <span class="rpt-tag rpt-tag-owasp">${r.owasp_ref}</span>
+          <span class="rpt-tag rpt-tag-nist">${r.nist_ref}</span>
+          <span class="rpt-tag rpt-tag-iso">${r.iso_ref}</span>
+        </div>
+      </div>`;
+    }).join('');
+
+    // Roadmap (AI section — horizon summary kept for backwards compat)
+    const rm = analysis.roadmap || {};
+    document.getElementById('rpt-roadmap').innerHTML = `
+      <div class="rpt-roadmap-title">Remediation Roadmap</div>
+      <div class="rpt-roadmap-grid">
+        ${[['immediate','🔴 Immediate','ri'],['short_term','🟡 Short-term (30–90 days)','rs'],['long_term','🟢 Long-term (90+ days)','rl']].map(([key,label,cls]) => `
+          <div class="rpt-roadmap-col ${cls}">
+            <h4>${label}</h4>
+            ${(rm[key]||[]).map(item => `
+              <div class="rpt-roadmap-item">${item.action}
+                <span class="rpt-roadmap-owner">→ ${item.owner}</span>
+              </div>`).join('')}
+          </div>`).join('')}
+      </div>`;
+
+    // ── Roadmap Recommendations print page ──
+    const rptRmPage = document.getElementById('rpt-roadmap-page');
+    const workstreams = analysis.workstreams || [];
+    if (workstreams.length) {
+      rptRmPage.classList.remove('empty');
+      const effortLabel = { S: 'S', M: 'M', L: 'L' };
+      document.getElementById('rpt-roadmap-content').innerHTML = workstreams.map(ws => {
+        const pri = ws.priority || 'Medium';
+        const domainTags = (ws.domains || []).map(d => `<span class="rpt-ws-dtag">${d}</span>`).join('');
+        const targetGap  = ws.target_gap ? `<span class="rpt-ws-tgap">🎯 ${ws.target_gap}</span>` : '';
+        const rows = (ws.items || []).map(item => {
+          const hz = item.horizon || 'long_term';
+          return `<tr>
+            <td><span class="rpt-hz-badge ${hz}">${hz === 'immediate' ? 'Now' : hz === 'short_term' ? '30–90d' : '90d+'}</span></td>
+            <td><div class="rpt-rm-action">${item.action}</div><div class="rpt-rm-outcome">${item.outcome || ''}</div></td>
+            <td>${item.owner || ''}</td>
+            <td style="text-align:center">${effortLabel[item.effort] || item.effort || ''}</td>
+          </tr>`;
+        }).join('');
+        return `<div class="rpt-ws-block pri-${pri}">
+          <div class="rpt-ws-head">
+            <div style="flex:1">
+              <div class="rpt-ws-epic">${ws.epic_title || ws.name}</div>
+              <div class="rpt-ws-impact">${ws.business_impact || ''}</div>
+              <div class="rpt-ws-tagrow" style="margin-top:4px">
+                <span class="rpt-ws-pri ${pri}">${pri}</span>
+                ${domainTags}
+                ${targetGap}
+              </div>
+              ${ws.risk_driver ? `<div class="rpt-ws-risk-txt">⚠ ${ws.risk_driver}</div>` : ''}
+            </div>
+          </div>
+          <table class="rpt-ws-items-table">
+            <thead><tr><th>Horizon</th><th>Action &amp; Outcome</th><th>Owner</th><th>Size</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>`;
+      }).join('');
+    } else {
+      rptRmPage.classList.add('empty');
+    }
+
+    document.getElementById('rpt-closing').innerHTML =
+      `<div class="rpt-closing">${analysis.closing_statement || ''}</div>`;
+  } else {
+    aiSection.classList.add('empty');
+  }
+
+  // ── Notes ──
+  const notes = document.getElementById('notes-area').value.trim();
+  const notesPage = document.getElementById('rpt-notes-page');
+  if (notes) {
+    notesPage.classList.remove('empty');
+    document.getElementById('rpt-notes-body').textContent = notes;
+  } else {
+    notesPage.classList.add('empty');
+  }
+
+  // ── Footer ──
+  document.getElementById('rpt-footer-center').textContent = `AI Security Maturity Assessment`;
+  document.getElementById('rpt-footer-date2').textContent  = now;
+
+  // ── Progress page (only when baseline exists) ──
+  const progressPage = document.getElementById('rpt-progress-page');
+  if (baseline?.scores) {
+    progressPage.style.display = '';
+
+    const origDate = document.getElementById('meta-original-date').value || baseline.date || '—';
+    const curDate  = meta.date || now;
+    document.getElementById('rpt-progress-dates').textContent = `${origDate} → ${curDate}`;
+
+    // Compute deltas
+    let improved = [], regressed = [], unchanged = [], totalDelta = 0;
+    DOMAINS.forEach(d => {
+      const cur = scores[d.id] ?? null;
+      const old = baseline.scores[d.id] ?? null;
+      if (cur === null && old === null) return;
+      const delta = (cur ?? 0) - (old ?? 0);
+      totalDelta += delta;
+      if (delta > 0)      improved.push({ d, old, cur, delta });
+      else if (delta < 0) regressed.push({ d, old, cur, delta });
+      else                unchanged.push({ d, old, cur, delta });
+    });
+
+    // Summary stat cards
+    document.getElementById('rpt-progress-summary').innerHTML = `
+      <div class="rpt-progress-stat ps-improved"><div class="ps-num">${improved.length}</div><div class="ps-label">Domains Improved</div></div>
+      <div class="rpt-progress-stat ps-regressed"><div class="ps-num">${regressed.length}</div><div class="ps-label">Regressed</div></div>
+      <div class="rpt-progress-stat ps-unchanged"><div class="ps-num">${unchanged.length}</div><div class="ps-label">Unchanged</div></div>
+      <div class="rpt-progress-stat ps-delta"><div class="ps-num">${totalDelta > 0 ? '+' : ''}${totalDelta}</div><div class="ps-label">Net Score Change</div></div>
+    `;
+
+    // Copy charts (viewBox + content)
+    const _rptSpiderProg = document.getElementById('rpt-spider-progress');
+    const _rptBarProg    = document.getElementById('rpt-bar-progress');
+    _rptSpiderProg.setAttribute('viewBox', _screenSpider.getAttribute('viewBox'));
+    _rptBarProg.setAttribute('viewBox',    _screenBar.getAttribute('viewBox'));
+    _rptSpiderProg.innerHTML = _screenSpider.innerHTML;
+    _rptBarProg.innerHTML    = _screenBar.innerHTML;
+
+    // Improvements table
+    const allChanged = [...improved, ...regressed].sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta));
+    document.getElementById('rpt-progress-table').innerHTML = `
+      <table>
+        <thead><tr>
+          <th>Domain</th>
+          <th>Baseline</th>
+          <th>Current</th>
+          <th>Change</th>
+          <th>Status</th>
+        </tr></thead>
+        <tbody>
+          ${[...allChanged, ...unchanged].map(({ d, old, cur, delta }) => {
+            const oldLbl = old !== null ? `L${old} – ${CMMC_LEVEL_NAMES[old - 1] || ''}` : '—';
+            const curLbl = cur !== null ? `L${cur} – ${CMMC_LEVEL_NAMES[cur - 1] || ''}` : '—';
+            const deltaCls = delta > 0 ? 'delta-up' : delta < 0 ? 'delta-down' : 'delta-same';
+            const deltaStr = delta > 0 ? `+${delta}` : delta < 0 ? `${delta}` : '—';
+            const status   = delta > 0 ? '✅ Improved' : delta < 0 ? '⚠️ Regressed' : '· Unchanged';
+            return `<tr>
+              <td><strong>${d.icon} ${d.name}</strong></td>
+              <td>${oldLbl}</td>
+              <td>${curLbl}</td>
+              <td class="${deltaCls}">${deltaStr}</td>
+              <td>${status}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    `;
+  } else {
+    progressPage.style.display = 'none';
+  }
+
+  window.print();
+}
+
+// ── Toast ─────────────────────────────────────────────────────────────────
+function showToast(msg, type='success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast ${type} show`;
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+</script>
+</body>
+</html>
+
+

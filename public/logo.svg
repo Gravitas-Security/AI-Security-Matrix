@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 40" fill="none">
+  <rect width="32" height="32" x="0" y="4" rx="6" fill="#7c3aed"/>
+  <text x="8" y="24" font-family="system-ui,sans-serif" font-size="18" font-weight="800" fill="white">R</text>
+  <text x="40" y="26" font-family="system-ui,sans-serif" font-size="16" font-weight="700" fill="white">Relativity</text>
+</svg>
