@@ -860,8 +860,18 @@ td { padding: 10px 12px; vertical-align: middle; }
   </div>
   <div class="chart-card">
     <div class="chart-title">Maturity Trend</div>
-    <div style="position:relative;width:100%;height:220px;">
+    <div style="position:relative;width:100%;height:200px;">
       <canvas id="trend-chart" role="img" aria-label="Line chart of maturity score over assessment history">No trend data yet.</canvas>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:10px;">
+      <div class="trend-stat" style="flex:1">
+        <div class="trend-stat-label">Improvement</div>
+        <div><span class="trend-stat-val" id="trend-improvement-val">—</span><span class="trend-stat-sub">since first</span></div>
+      </div>
+      <div class="trend-stat" style="flex:1">
+        <div class="trend-stat-label">Assessments</div>
+        <div><span class="trend-stat-val" style="color:#7c3aed" id="trend-count-val">0</span><span class="trend-stat-sub">recorded</span></div>
+      </div>
     </div>
   </div>
 </div>
