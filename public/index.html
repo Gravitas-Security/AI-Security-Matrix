@@ -177,7 +177,22 @@ td { padding: 10px 12px; vertical-align: middle; }
   letter-spacing: 0.05em; color: #64748b; margin-bottom: 8px;
 }
 .checklist { list-style: none; }
-.checklist li { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #374151; margin-bottom: 6px; line-height: 1.4; }
+.checklist li { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #374151; margin-bottom: 6px; line-height: 1.4; }
+.check-row { display: flex; align-items: center; gap: 8px; }
+.check-detail { width: 100%; margin-top: 2px; padding-left: 62px; }
+.check-justification {
+  width: 100%; border-radius: 5px; padding: 5px 8px; font-size: 11.5px; font-family: inherit;
+  line-height: 1.5; resize: vertical; border: 1.5px solid #fca5a5; background: #fff5f5;
+  min-height: 52px; color: #7f1d1d;
+}
+.check-justification:focus { outline: none; border-color: #ef4444; box-shadow: 0 0 0 2px rgba(239,68,68,0.12); }
+.check-justification::placeholder { color: #fca5a5; font-style: italic; }
+.ev-upload-label { display: flex; align-items: center; gap: 8px; border: 1.5px dashed #6ee7b7; border-radius: 5px; padding: 6px 10px; cursor: pointer; transition: border-color 0.2s, background 0.2s; background: #f0fdf4; }
+.ev-upload-label:hover { border-color: #059669; background: #ecfdf5; }
+.ev-upload-prompt { font-size: 11.5px; color: #059669; font-weight: 500; }
+.ev-preview { display: flex; align-items: center; gap: 10px; border: 1.5px solid #6ee7b7; border-radius: 5px; padding: 5px 8px; background: #f0fdf4; }
+.ev-img { max-height: 48px; max-width: 80px; border-radius: 3px; object-fit: cover; }
+.ev-name { font-size: 11px; color: #065f46; }
 .yn-btns { display: flex; gap: 3px; flex-shrink: 0; }
 .yn-btn {
   padding: 2px 9px; border-radius: 4px; font-size: 10.5px; font-weight: 600;
@@ -1304,6 +1319,8 @@ const DOMAINS = [
 let scores       = {};
 let checks       = {};
 let manualScores = {};
+let justifications = {}; // justifications[domainId][checkIdx] = 'text'
+let evidence       = {}; // evidence[domainId][checkIdx]       = { src, name }
 let analysis     = null;
 let baseline     = null; // { scores:{}, date:'', assessmentDate:'' }
 let expanded     = null;
@@ -1614,9 +1631,11 @@ async function loadState() {
     const res = await fetch('/api/state');
     const data = await res.json();
     if (data) {
-      scores       = data.scores       || {};
-      checks       = data.checks       || {};
-      manualScores = data.manualScores || {};
+      scores         = data.scores         || {};
+      checks         = data.checks         || {};
+      manualScores   = data.manualScores   || {};
+      justifications = data.justifications || {};
+      evidence       = data.evidence       || {};
       analysis     = data.analysis     || null;
       baseline     = data.baseline     || null;
       if (data.meta) {
@@ -1646,7 +1665,7 @@ async function loadState() {
 
 async function saveState() {
   const payload = {
-    scores, checks, manualScores, analysis, baseline,
+    scores, checks, manualScores, justifications, evidence, analysis, baseline,
     orgName: document.getElementById('brand-name').value,
     orgLogo: orgLogo,
     aiContext: getAiContext(),
@@ -1678,7 +1697,7 @@ function autosave() {
 
 async function resetAll() {
   if (!confirm('Reset all scores, checks, notes, and AI analysis? This cannot be undone.')) return;
-  scores = {}; checks = {}; manualScores = {}; analysis = null; baseline = null; expanded = null;
+  scores = {}; checks = {}; manualScores = {}; justifications = {}; evidence = {}; analysis = null; baseline = null; expanded = null;
   document.getElementById('notes-area').value = '';
   document.getElementById('meta-original-date').value = '';
   ['ctx-architecture','ctx-mitigations','ctx-compliance','ctx-risks','ctx-notes'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
@@ -1695,7 +1714,7 @@ async function resetAll() {
 // ── Import / Export JSON ───────────────────────────────────────────────────
 function exportStateJSON() {
   const payload = {
-    scores, checks, manualScores, analysis, baseline,
+    scores, checks, manualScores, justifications, evidence, analysis, baseline,
     orgName: document.getElementById('brand-name').value,
     orgLogo: orgLogo,
     aiContext: getAiContext(),
@@ -1740,9 +1759,11 @@ function importAssessment(file) {
         };
       }
 
-      scores       = data.scores       || {};
-      checks       = data.checks       || {};
-      manualScores = data.manualScores || {};
+      scores         = data.scores         || {};
+      checks         = data.checks         || {};
+      manualScores   = data.manualScores   || {};
+      justifications = data.justifications || {};
+      evidence       = data.evidence       || {};
       analysis     = data.analysis     || null;
 
       if (data.meta) {
@@ -1846,12 +1867,37 @@ function renderMatrix() {
     if (isExp) {
       if (!checks[d.id]) checks[d.id] = new Array(d.checks.length).fill(null);
       const checkHtml = d.checks.map((c, i) => {
-        const val = checks[d.id][i];
+        const val  = checks[d.id][i];
+        const just = justifications[d.id]?.[i] || '';
+        const ev   = evidence[d.id]?.[i];
+        const detail = val === 'no'
+          ? `<div class="check-detail">
+               <textarea class="check-justification"
+                 placeholder="Justification of missing control"
+                 title="Justification of missing control"
+                 oninput="setJustification('${d.id}',${i},this.value)"
+               >${just}</textarea></div>`
+          : val === 'yes'
+          ? `<div class="check-detail"><div id="ev-${d.id}-${i}">` + (
+                ev
+                ? `<div class="ev-preview">
+                     <img class="ev-img" src="${ev.src}" alt="${ev.name}">
+                     <span class="ev-name">${ev.name}</span>
+                     <button class="btn btn-danger" onclick="removeEvidence(event,'${d.id}',${i})" style="font-size:10px;padding:2px 8px;margin-top:3px">Remove</button>
+                   </div>`
+                : `<label class="ev-upload-label">
+                     <input type="file" accept="image/*" style="display:none" onchange="handleEvidenceUpload('${d.id}',${i},this)">
+                     <span>📎</span><span class="ev-upload-prompt">Upload screenshot evidence</span>
+                   </label>`
+              ) + `</div></div>`
+          : '';
         return `<li>
-          <div class="yn-btns">
-            <span class="yn-btn yes${val==='yes'?' active':''}" onclick="setCheck(event,'${d.id}',${i},'yes')">Yes</span>
-            <span class="yn-btn no${val==='no'?' active':''}"  onclick="setCheck(event,'${d.id}',${i},'no')">No</span>
-          </div>${c}</li>`;
+          <div class="check-row">
+            <div class="yn-btns">
+              <span class="yn-btn yes${val==='yes'?' active':''}" onclick="setCheck(event,'${d.id}',${i},'yes')">Yes</span>
+              <span class="yn-btn no${val==='no'?' active':''}"  onclick="setCheck(event,'${d.id}',${i},'no')">No</span>
+            </div>${c}
+          </div>${detail}</li>`;
       }).join('');
 
       const yesCount  = checks[d.id].filter(v => v === 'yes').length;
@@ -1930,6 +1976,47 @@ function setCheck(e, id, idx, value) {
     }
   }
   renderMatrix();
+}
+
+function setJustification(domainId, idx, value) {
+  if (!justifications[domainId]) justifications[domainId] = {};
+  justifications[domainId][idx] = value;
+  autosave();
+}
+
+function handleEvidenceUpload(domainId, idx, input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) { showToast('Screenshot must be under 5 MB', 'error'); return; }
+  const reader = new FileReader();
+  reader.onload = e => {
+    if (!evidence[domainId]) evidence[domainId] = {};
+    evidence[domainId][idx] = { src: e.target.result, name: file.name };
+    const wrap = document.getElementById(`ev-${domainId}-${idx}`);
+    if (wrap) {
+      const ev = evidence[domainId][idx];
+      wrap.innerHTML = `<div class="ev-preview">
+        <img class="ev-img" src="${ev.src}" alt="${ev.name}">
+        <span class="ev-name">${ev.name}</span>
+        <button class="btn btn-danger" onclick="removeEvidence(event,'${domainId}',${idx})" style="font-size:10px;padding:2px 8px;margin-top:3px">Remove</button>
+      </div>`;
+    }
+    autosave();
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeEvidence(e, domainId, idx) {
+  e.stopPropagation();
+  if (evidence[domainId]) delete evidence[domainId][idx];
+  const wrap = document.getElementById(`ev-${domainId}-${idx}`);
+  if (wrap) {
+    wrap.innerHTML = `<label class="ev-upload-label">
+      <input type="file" accept="image/*" style="display:none" onchange="handleEvidenceUpload('${domainId}',${idx},this)">
+      <span>📎</span><span class="ev-upload-prompt">Upload screenshot evidence</span>
+    </label>`;
+  }
+  autosave();
 }
 
 // ── Score banner ──────────────────────────────────────────────────────────
@@ -2544,10 +2631,18 @@ function exportPDF() {
         <span class="rpt-domain-score" style="color:${color}">Level ${s} — ${['None','Basic','Managed','Optimized'][s]}</span>
       </div>
       <div class="rpt-check-grid">
-        ${d.checks.map((c, i) => `
-          <div class="rpt-check-item">
-            <span class="rpt-check-icon">${domChecks[i]==='yes' ? '✅' : domChecks[i]==='no' ? '❌' : '☐'}</span>${c}
-          </div>`).join('')}
+        ${d.checks.map((c, i) => {
+          const val  = domChecks[i];
+          const just = justifications[d.id]?.[i];
+          const ev   = evidence[d.id]?.[i];
+          return `<div class="rpt-check-item" style="flex-direction:column;align-items:flex-start;gap:3px">
+            <div style="display:flex;align-items:flex-start;gap:5px">
+              <span class="rpt-check-icon">${val==='yes' ? '✅' : val==='no' ? '❌' : '☐'}</span>${c}
+            </div>
+            ${val==='no' && just ? `<div style="font-size:8pt;color:#92400e;background:#fef3c7;border-radius:3px;padding:2px 6px;margin-left:18px">📝 ${just}</div>` : ''}
+            ${val==='yes' && ev  ? `<div style="margin-left:18px"><img src="${ev.src}" alt="${ev.name}" style="max-height:36px;max-width:60px;border-radius:2px;border:1px solid #6ee7b7"></div>` : ''}
+          </div>`;
+        }).join('')}
       </div>
     </div>`;
   }).join('');
