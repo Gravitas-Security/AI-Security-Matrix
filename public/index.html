@@ -640,7 +640,7 @@ td { padding: 10px 12px; vertical-align: middle; }
 .baseline-clear-btn { color: #92400e !important; border-color: #fde68a !important; }
 
 /* ── Charts row ───────────────────────────────────────────── */
-.charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 0 0 14px; }
+.charts-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin: 0 0 14px; }
 .chart-card { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 16px; }
 .chart-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #64748b; margin-bottom: 6px; }
 .chart-card svg { width: 100%; height: auto; display: block; max-height: 300px; }
@@ -858,6 +858,12 @@ td { padding: 10px 12px; vertical-align: middle; }
     <div class="chart-title">Maturity by Domain</div>
     <svg id="bar-chart" viewBox="0 0 360 280" xmlns="http://www.w3.org/2000/svg"></svg>
   </div>
+  <div class="chart-card">
+    <div class="chart-title">Maturity Trend</div>
+    <div style="position:relative;width:100%;height:220px;">
+      <canvas id="trend-chart" role="img" aria-label="Line chart of maturity score over assessment history">No trend data yet.</canvas>
+    </div>
+  </div>
 </div>
 
 <!-- ── Tabs ──────────────────────────────────────────────── -->
@@ -868,7 +874,7 @@ td { padding: 10px 12px; vertical-align: middle; }
   <div class="tab" onclick="switchTab('roadmap')">Roadmap</div>
   <div class="tab" onclick="switchTab('notes')">Notes</div>
   <div class="tab" onclick="switchTab('threat-model')">Threat Model</div>
-  <div class="tab" onclick="switchTab('trend')">Trend</div>
+
 </div>
 
 <!-- ════════════════════════════════════════════════════════
@@ -1181,59 +1187,6 @@ td { padding: 10px 12px; vertical-align: middle; }
   <div class="rpt-page rpt-notes-page" id="rpt-notes-page">
     <div class="rpt-page-header"><span>Meeting Notes &amp; Observations</span></div>
     <div class="rpt-notes-body" id="rpt-notes-body"></div>
-  </div>
-
-  <!-- Trend tab -->
-  <div id="panel-trend" class="tab-panel" style="display:none">
-    <div style="background:white;border-radius:8px;border:1px solid #e2e8f0;overflow:hidden;">
-      <div style="padding:16px 24px;border-bottom:1px solid #e2e8f0;display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;">
-        <div>
-          <div style="font-size:15px;font-weight:700;color:#1e293b;margin-bottom:4px;">Maturity Trend</div>
-          <div style="font-size:12px;color:#64748b;max-width:520px;line-height:1.5;">Score history over time · projected path to target · improvement since baseline</div>
-        </div>
-      </div>
-      <div id="trend-results">
-        <div style="padding:16px 24px;border-bottom:1px solid #f0f4f8;">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
-            <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:#64748b;align-items:center;">
-              <span style="display:flex;align-items:center;gap:6px;"><span style="width:20px;height:3px;background:#7c3aed;border-radius:2px;display:inline-block;"></span>Actual score</span>
-              <span style="display:flex;align-items:center;gap:6px;"><svg width="20" height="3"><line x1="0" y1="1.5" x2="20" y2="1.5" stroke="#d97706" stroke-width="2" stroke-dasharray="5,3"/></svg>Projected trend</span>
-              <span style="display:flex;align-items:center;gap:6px;"><svg width="20" height="3"><line x1="0" y1="1.5" x2="20" y2="1.5" stroke="#10b981" stroke-width="2" stroke-dasharray="3,3"/></svg>Target level</span>
-            </div>
-          </div>
-          <div style="position:relative;width:100%;height:280px;">
-            <canvas id="trend-chart" role="img" aria-label="Line chart of maturity score over assessment history">No trend data yet.</canvas>
-          </div>
-        </div>
-        <div style="padding:16px 24px;border-bottom:1px solid #f0f4f8;display:flex;gap:12px;flex-wrap:wrap;">
-          <div class="trend-stat" id="trend-stat-improvement">
-            <div class="trend-stat-label">Improvement</div>
-            <div><span class="trend-stat-val" id="trend-improvement-val">—</span><span class="trend-stat-sub">since first assessment</span></div>
-          </div>
-          <div class="trend-stat">
-            <div class="trend-stat-label">Assessments</div>
-            <div><span class="trend-stat-val" style="color:#7c3aed" id="trend-count-val">0</span><span class="trend-stat-sub">recorded</span></div>
-          </div>
-        </div>
-        <div style="padding:16px 24px;">
-          <div id="trend-table-wrap">
-            <div class="trend-empty" id="trend-empty">Save an assessment to start tracking history.</div>
-            <table class="trend-history-table" id="trend-table" style="display:none">
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th style="text-align:center">Score</th>
-                  <th style="text-align:center">Posture</th>
-                  <th style="text-align:center">Change</th>
-                  <th>Assessor</th>
-                </tr>
-              </thead>
-              <tbody id="trend-tbody"></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
   </div>
 
   <!-- Report footer (appears on every print page via fixed positioning) -->
@@ -2246,6 +2199,7 @@ function updateScoreBanner() {
 
   renderCharts();
   updateBaselineBanner();
+  renderTrend();
 }
 
 // ── Charts ────────────────────────────────────────────────────────────────
@@ -2524,7 +2478,7 @@ function renderRefTable() {
 }
 
 // ── Tab switching ─────────────────────────────────────────────────────────
-const ALL_TABS = ['matrix', 'frameworks', 'ai', 'roadmap', 'notes', 'threat-model', 'trend'];
+const ALL_TABS = ['matrix', 'frameworks', 'ai', 'roadmap', 'notes', 'threat-model'];
 function switchTab(tab) {
   document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', ALL_TABS[i] === tab));
   ALL_TABS.forEach(t => {
@@ -2642,42 +2596,46 @@ function renderAnalysis(a) {
 
 // ── Trend ─────────────────────────────────────────────────────────────────
 function renderTrend() {
-  if (!history || history.length === 0) {
-    document.getElementById('trend-empty').style.display = '';
-    document.getElementById('trend-table').style.display = 'none';
-    document.getElementById('trend-improvement-val').textContent = '—';
-    document.getElementById('trend-count-val').textContent = '0';
-    return;
-  }
+  const canvas = document.getElementById('trend-chart');
+  if (!canvas) return;
 
-  document.getElementById('trend-empty').style.display = 'none';
-  document.getElementById('trend-table').style.display = '';
-  document.getElementById('trend-count-val').textContent = history.length;
+  const existing = Chart.getChart('trend-chart');
+  if (existing) existing.destroy();
 
+  if (!history || history.length === 0) return;
+
+  const countEl = document.getElementById('trend-count-val');
+  if (countEl) countEl.textContent = history.length;
   const first = history[0].avg;
   const last  = history[history.length - 1].avg;
   const delta = last - first;
   const impEl = document.getElementById('trend-improvement-val');
-  impEl.textContent = (delta >= 0 ? '+' : '') + delta.toFixed(1);
-  impEl.style.color = delta >= 0 ? '#10b981' : '#ef4444';
+  if (impEl) { impEl.textContent = (delta >= 0 ? '+' : '') + delta.toFixed(1); impEl.style.color = delta >= 0 ? '#10b981' : '#ef4444'; }
 
   const postureBg    = { 'AI L1':'#fee2e2','AI L2':'#fef3c7','AI L3':'#d1fae5','AI L4':'#ede9fe','AI L5':'#a7f3d0','None':'#f1f5f9' };
   const postureColor = { 'AI L1':'#991b1b','AI L2':'#92400e','AI L3':'#065f46','AI L4':'#5b21b6','AI L5':'#064e3b','None':'#475569' };
-  document.getElementById('trend-tbody').innerHTML = [...history].reverse().map((h, ri) => {
-    const origIdx = history.length - 1 - ri;
-    const prev  = origIdx > 0 ? history[origIdx - 1].avg : null;
-    const d     = prev !== null ? h.avg - prev : null;
-    const isLatest = origIdx === history.length - 1;
-    return `<tr${isLatest ? ' style="background:#faf5ff"' : ''}>
-      <td style="color:#1e293b;font-weight:${isLatest?'600':'400'}">${h.date}${isLatest ? ' <span style="font-size:10px;background:#ede9fe;color:#5b21b6;padding:1px 6px;border-radius:4px;font-weight:600">current</span>' : ''}</td>
-      <td style="text-align:center;font-weight:600;color:#7c3aed">${h.avg.toFixed(1)}</td>
-      <td style="text-align:center"><span style="font-size:11px;padding:2px 8px;border-radius:4px;font-weight:500;background:${postureBg[h.posture]||'#f1f5f9'};color:${postureColor[h.posture]||'#475569'}">${h.posture}</span></td>
-      <td style="text-align:center;font-weight:600;color:${d===null?'#94a3b8':d>0?'#10b981':d<0?'#ef4444':'#94a3b8'}">${d===null?'—':d>0?'+'+d.toFixed(1):d.toFixed(1)}</td>
-      <td style="color:#64748b">${h.assessor||'—'}</td>
-    </tr>`;
-  }).join('');
+  const tbody = document.getElementById('trend-tbody');
+  if (tbody) {
+    tbody.innerHTML = [...history].reverse().map((h, ri) => {
+      const origIdx = history.length - 1 - ri;
+      const prev = origIdx > 0 ? history[origIdx - 1].avg : null;
+      const d    = prev !== null ? h.avg - prev : null;
+      const isLatest = origIdx === history.length - 1;
+      return `<tr${isLatest ? ' style="background:#faf5ff"' : ''}>
+        <td style="color:#1e293b;font-weight:${isLatest?'600':'400'}">${h.date}${isLatest?' <span style="font-size:10px;background:#ede9fe;color:#5b21b6;padding:1px 6px;border-radius:4px;font-weight:600">current</span>':''}</td>
+        <td style="text-align:center;font-weight:600;color:#7c3aed">${h.avg.toFixed(1)}</td>
+        <td style="text-align:center"><span style="font-size:11px;padding:2px 8px;border-radius:4px;font-weight:500;background:${postureBg[h.posture]||'#f1f5f9'};color:${postureColor[h.posture]||'#475569'}">${h.posture}</span></td>
+        <td style="text-align:center;font-weight:600;color:${d===null?'#94a3b8':d>0?'#10b981':d<0?'#ef4444':'#94a3b8'}">${d===null?'—':d>0?'+'+d.toFixed(1):d.toFixed(1)}</td>
+        <td style="color:#64748b">${h.assessor||'—'}</td>
+      </tr>`;
+    }).join('');
+    const tableEl = document.getElementById('trend-table');
+    if (tableEl) tableEl.style.display = history.length > 0 ? '' : 'none';
+    const emptyEl = document.getElementById('trend-empty');
+    if (emptyEl) emptyEl.style.display = history.length > 0 ? 'none' : '';
+  }
 
-  const target = parseInt(document.getElementById('meta-target')?.value || '3');
+  const target    = parseInt(document.getElementById('meta-target')?.value || '3');
   const targetVal = isNaN(target) ? 3 : Math.min(5, Math.max(1, target));
   const chartLabels = history.map(h => h.date);
   const chartScores = history.map(h => h.avg);
@@ -2698,17 +2656,14 @@ function renderTrend() {
   const projDs   = allLabels.map((_,i) => i >= n-1 ? Math.min(5, parseFloat((intercept+slope*i).toFixed(2))) : null);
   const targetDs = allLabels.map(() => targetVal);
 
-  const existing = Chart.getChart('trend-chart');
-  if (existing) existing.destroy();
-
-  new Chart(document.getElementById('trend-chart'), {
+  new Chart(canvas, {
     type: 'line',
     data: {
       labels: allLabels,
       datasets: [
-        { label:'Actual score', data:actualDs, borderColor:'#7c3aed', backgroundColor:'#7c3aed', borderWidth:2.5, pointRadius:5, pointHoverRadius:7, pointStyle:'circle', spanGaps:false, tension:0.35, fill:false },
-        { label:'Projected trend', data:projDs, borderColor:'#d97706', backgroundColor:'#d97706', borderWidth:2, borderDash:[6,4], pointRadius:allLabels.map((_,i)=>projDs[i]!==null&&actualDs[i]===null?4:0), pointStyle:'triangle', spanGaps:false, tension:0.2, fill:false },
-        { label:'Target', data:targetDs, borderColor:'#10b981', backgroundColor:'transparent', borderWidth:1.5, borderDash:[4,4], pointRadius:0, fill:false },
+        { label:'Actual', data:actualDs, borderColor:'#7c3aed', backgroundColor:'#7c3aed', borderWidth:2, pointRadius:3, pointHoverRadius:5, spanGaps:false, tension:0.35, fill:false },
+        { label:'Projected', data:projDs, borderColor:'#d97706', backgroundColor:'#d97706', borderWidth:1.5, borderDash:[5,3], pointRadius:allLabels.map((_,i)=>projDs[i]!==null&&actualDs[i]===null?3:0), spanGaps:false, tension:0.2, fill:false },
+        { label:'Target', data:targetDs, borderColor:'#10b981', backgroundColor:'transparent', borderWidth:1.5, borderDash:[3,3], pointRadius:0, fill:false },
       ]
     },
     options: {
@@ -2716,11 +2671,11 @@ function renderTrend() {
       interaction:{ mode:'index', intersect:false },
       plugins:{
         legend:{ display:false },
-        tooltip:{ padding:10, callbacks:{ label: ctx => ctx.parsed.y===null?null:` ${ctx.dataset.label}: ${ctx.parsed.y.toFixed(1)} / 5` } }
+        tooltip:{ padding:8, callbacks:{ label: ctx => ctx.parsed.y===null?null:` ${ctx.dataset.label}: ${ctx.parsed.y.toFixed(1)}` } }
       },
       scales:{
-        x:{ grid:{color:'rgba(0,0,0,0.05)'}, ticks:{font:{size:11},autoSkip:false,maxRotation:30,color:'#64748b'} },
-        y:{ min:0, max:5, ticks:{stepSize:1,callback:v=>v===0?'':'L'+v,color:'#64748b',font:{size:11}}, grid:{color:'rgba(0,0,0,0.05)'} }
+        x:{ grid:{color:'rgba(0,0,0,0.04)'}, ticks:{font:{size:10},autoSkip:true,maxRotation:30,color:'#94a3b8'} },
+        y:{ min:0, max:5, ticks:{stepSize:1,callback:v=>v===0?'':'L'+v,color:'#94a3b8',font:{size:10}}, grid:{color:'rgba(0,0,0,0.04)'} }
       }
     }
   });
