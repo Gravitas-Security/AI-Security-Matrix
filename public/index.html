@@ -2442,7 +2442,7 @@ function renderBarChart(containerW) {
     SCORE_LABELS.forEach((lbl, i) => {
       const lx = marginL + i * (W / 4.2);
       html += `<rect x="${lx}" y="${lgY - sh}" width="${sw}" height="${sh}" fill="${SCORE_COLORS[i]}" stroke="#7c3aed" stroke-width="0.8" rx="2"/>`;
-      html += `<text x="${lx + sw + 4}" y="${lgY - 1}" font-size="${fontSize}" fill="#64748b" font-family="sans-serif">L${i + 1} – ${lbl}</text>`;
+      html += `<text x="${lx + sw + 4}" y="${lgY - 1}" font-size="${fontSize}" fill="#64748b" font-family="sans-serif">L${i + 1}</text>`;
     });
   }
 
