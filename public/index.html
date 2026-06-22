@@ -249,6 +249,49 @@ td { padding: 10px 12px; vertical-align: middle; }
 
 /* Old print styles removed — replaced by .rpt-* section below */
 
+/* ── Threat Model tab ─────────────────────────────────────── */
+.tm-panel { background: white; border-radius: 8px; border: 1px solid #e2e8f0; overflow: hidden; }
+.tm-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 20px 24px; border-bottom: 1px solid #e2e8f0; }
+.tm-title { font-size: 15px; font-weight: 700; color: #1e293b; margin-bottom: 4px; }
+.tm-subtitle { font-size: 12px; color: #64748b; max-width: 540px; line-height: 1.5; }
+.tm-status { padding: 14px 24px; font-size: 13px; display: flex; align-items: center; gap: 10px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
+.tm-section { padding: 20px 24px; border-bottom: 1px solid #f0f4f8; }
+.tm-section:last-child { border-bottom: none; }
+.tm-section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #7c3aed; margin-bottom: 14px; }
+.tm-summary { font-size: 13px; color: #374151; line-height: 1.7; background: #f5f3ff; border-radius: 6px; padding: 14px 16px; border-left: 3px solid #7c3aed; }
+.tm-actor-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+.tm-actor { background: #f8fafc; border-radius: 6px; padding: 12px 14px; border: 1px solid #e2e8f0; }
+.tm-actor-name { font-size: 13px; font-weight: 700; color: #1e293b; margin-bottom: 4px; }
+.tm-actor-meta { display: flex; gap: 6px; margin-bottom: 6px; flex-wrap: wrap; }
+.tm-actor-motivation { font-size: 11.5px; color: #64748b; line-height: 1.4; }
+.tm-scenario { background: #f8fafc; border-radius: 6px; padding: 14px 16px; margin-bottom: 10px; border-left: 4px solid #e2e8f0; }
+.tm-scenario.sev-c { border-left-color: #ef4444; }
+.tm-scenario.sev-h { border-left-color: #f59e0b; }
+.tm-scenario.sev-m { border-left-color: #3b82f6; }
+.tm-scenario.sev-l { border-left-color: #10b981; }
+.tm-scenario-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+.tm-scenario-name { font-size: 13px; font-weight: 700; color: #1e293b; }
+.tm-scenario-desc { font-size: 12px; color: #374151; line-height: 1.5; margin-bottom: 8px; }
+.tm-scenario-gap { font-size: 11.5px; color: #92400e; background: #fef3c7; border-radius: 4px; padding: 4px 8px; margin-bottom: 8px; }
+.tm-technique-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.tm-ttag { font-size: 10.5px; padding: 2px 7px; border-radius: 3px; background: #ede9fe; color: #5b21b6; font-weight: 500; font-family: monospace; }
+.tm-matrix-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.tm-matrix-table th { padding: 8px 10px; text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; border-bottom: 2px solid #e2e8f0; background: #f8fafc; font-weight: 700; }
+.tm-matrix-table td { padding: 8px 10px; border-bottom: 1px solid #f0f4f8; vertical-align: middle; }
+.tm-coverage-none    { color: #dc2626; font-weight: 600; font-size: 11px; }
+.tm-coverage-partial { color: #d97706; font-weight: 600; font-size: 11px; }
+.tm-coverage-full    { color: #059669; font-weight: 600; font-size: 11px; }
+.tm-mit { background: #f8fafc; border-radius: 6px; padding: 12px 14px; margin-bottom: 8px; border-left: 4px solid #e2e8f0; }
+.tm-mit.pri-c { border-left-color: #ef4444; }
+.tm-mit.pri-h { border-left-color: #f59e0b; }
+.tm-mit.pri-m { border-left-color: #3b82f6; }
+.tm-mit.pri-l { border-left-color: #10b981; }
+.tm-mit-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap; }
+.tm-mit-id { font-family: monospace; font-size: 11.5px; font-weight: 700; color: #5b21b6; background: #ede9fe; padding: 2px 6px; border-radius: 3px; }
+.tm-mit-name { font-size: 13px; font-weight: 700; color: #1e293b; }
+.tm-mit-desc { font-size: 12px; color: #374151; line-height: 1.5; margin-bottom: 6px; }
+.tm-mit-techniques { display: flex; flex-wrap: wrap; gap: 4px; }
+
 /* ── AI panel ─────────────────────────────────────────────── */
 .ai-panel { background: white; border-radius: 8px; border: 1px solid #e2e8f0; overflow: hidden; }
 .ai-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 20px 24px; border-bottom: 1px solid #e2e8f0; }
@@ -808,6 +851,7 @@ td { padding: 10px 12px; vertical-align: middle; }
   <div class="tab" onclick="switchTab('ai')">AI Analysis</div>
   <div class="tab" onclick="switchTab('roadmap')">Roadmap</div>
   <div class="tab" onclick="switchTab('notes')">Notes</div>
+  <div class="tab" onclick="switchTab('threat-model')">Threat Model</div>
 </div>
 
 <!-- ════════════════════════════════════════════════════════
@@ -882,6 +926,45 @@ td { padding: 10px 12px; vertical-align: middle; }
     <div class="notes-wrap">
       <label>Meeting Notes &amp; Observations</label>
       <textarea id="notes-area" placeholder="Capture context, decisions, exceptions, and action items here..." oninput="autosave()"></textarea>
+    </div>
+  </div>
+
+  <!-- Threat Model tab -->
+  <div id="panel-threat-model" class="tab-panel" style="display:none">
+    <div class="tm-panel">
+      <div class="tm-header">
+        <div>
+          <div class="tm-title">🎯 MITRE ATLAS Threat Model</div>
+          <div class="tm-subtitle">AI-generated threat model mapping your assessment gaps to real-world MITRE ATLAS techniques, adversary profiles, and prioritized mitigations for AI systems.</div>
+        </div>
+        <button class="btn btn-primary" id="tm-btn" onclick="runThreatModel()">✦ Generate Threat Model</button>
+      </div>
+      <div id="tm-status" style="display:none" class="tm-status"></div>
+      <div id="tm-results" style="display:none">
+        <div class="tm-section">
+          <div class="tm-section-title">Threat Summary</div>
+          <div id="tm-summary" class="tm-summary"></div>
+        </div>
+        <div class="tm-section">
+          <div class="tm-section-title">Threat Actors</div>
+          <div id="tm-actors" class="tm-actor-grid"></div>
+        </div>
+        <div class="tm-section">
+          <div class="tm-section-title">Attack Scenarios</div>
+          <div id="tm-scenarios"></div>
+        </div>
+        <div class="tm-section">
+          <div class="tm-section-title">MITRE ATLAS Technique Matrix</div>
+          <table class="tm-matrix-table">
+            <thead><tr><th>Domain</th><th>Technique ID</th><th>Technique</th><th>Tactic</th><th>Likelihood</th><th>Severity</th><th>Coverage</th></tr></thead>
+            <tbody id="tm-matrix-body"></tbody>
+          </table>
+        </div>
+        <div class="tm-section">
+          <div class="tm-section-title">Top Mitigations</div>
+          <div id="tm-mitigations"></div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -1322,6 +1405,7 @@ let manualScores = {};
 let justifications = {}; // justifications[domainId][checkIdx] = 'text'
 let evidence       = {}; // evidence[domainId][checkIdx]       = { src, name }
 let analysis     = null;
+let threatModel  = null;
 let baseline     = null; // { scores:{}, date:'', assessmentDate:'' }
 let expanded     = null;
 let autosaveTimer = null;
@@ -1637,6 +1721,7 @@ async function loadState() {
       justifications = data.justifications || {};
       evidence       = data.evidence       || {};
       analysis     = data.analysis     || null;
+      threatModel  = data.threatModel  || null;
       baseline     = data.baseline     || null;
       if (data.meta) {
         if (data.meta.team)          document.getElementById('meta-team').value          = data.meta.team;
@@ -1659,13 +1744,14 @@ async function loadState() {
       if (azureFields) azureFields.classList.toggle('show', aiProvider === 'azure');
       if (data.notes) document.getElementById('notes-area').value = data.notes;
       if (analysis) renderAnalysis(analysis);
+      if (threatModel) renderThreatModel(threatModel);
     }
   } catch {}
 }
 
 async function saveState() {
   const payload = {
-    scores, checks, manualScores, justifications, evidence, analysis, baseline,
+    scores, checks, manualScores, justifications, evidence, analysis, threatModel, baseline,
     orgName: document.getElementById('brand-name').value,
     orgLogo: orgLogo,
     aiContext: getAiContext(),
@@ -1697,7 +1783,7 @@ function autosave() {
 
 async function resetAll() {
   if (!confirm('Reset all scores, checks, notes, and AI analysis? This cannot be undone.')) return;
-  scores = {}; checks = {}; manualScores = {}; justifications = {}; evidence = {}; analysis = null; baseline = null; expanded = null;
+  scores = {}; checks = {}; manualScores = {}; justifications = {}; evidence = {}; analysis = null; threatModel = null; baseline = null; expanded = null;
   document.getElementById('notes-area').value = '';
   document.getElementById('meta-original-date').value = '';
   ['ctx-architecture','ctx-mitigations','ctx-compliance','ctx-risks','ctx-notes'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
@@ -1705,6 +1791,8 @@ async function resetAll() {
   updateContextBadge();
   document.getElementById('ai-results').style.display = 'none';
   document.getElementById('ai-status').style.display = 'none';
+  document.getElementById('tm-results').style.display = 'none';
+  document.getElementById('tm-status').style.display = 'none';
   await fetch('/api/state', { method: 'DELETE' });
   renderMatrix();
   updateBaselineBanner();
@@ -1714,7 +1802,7 @@ async function resetAll() {
 // ── Import / Export JSON ───────────────────────────────────────────────────
 function exportStateJSON() {
   const payload = {
-    scores, checks, manualScores, justifications, evidence, analysis, baseline,
+    scores, checks, manualScores, justifications, evidence, analysis, threatModel, baseline,
     orgName: document.getElementById('brand-name').value,
     orgLogo: orgLogo,
     aiContext: getAiContext(),
@@ -1765,6 +1853,7 @@ function importAssessment(file) {
       justifications = data.justifications || {};
       evidence       = data.evidence       || {};
       analysis     = data.analysis     || null;
+      threatModel  = data.threatModel  || null;
 
       if (data.meta) {
         document.getElementById('meta-team').value     = data.meta.team     || '';
@@ -1787,6 +1876,7 @@ function importAssessment(file) {
       if (azureFieldsImp) azureFieldsImp.classList.toggle('show', aiProvider === 'azure');
       if (data.notes) document.getElementById('notes-area').value = data.notes;
       if (analysis) renderAnalysis(analysis);
+      if (threatModel) renderThreatModel(threatModel);
 
       renderMatrix();
       updateScoreBanner();
@@ -2327,7 +2417,7 @@ function renderRefTable() {
 }
 
 // ── Tab switching ─────────────────────────────────────────────────────────
-const ALL_TABS = ['matrix', 'frameworks', 'ai', 'roadmap', 'notes'];
+const ALL_TABS = ['matrix', 'frameworks', 'ai', 'roadmap', 'notes', 'threat-model'];
 function switchTab(tab) {
   document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', ALL_TABS[i] === tab));
   ALL_TABS.forEach(t => {
@@ -2441,6 +2531,104 @@ function renderAnalysis(a) {
 
   // ── Roadmap tab ──
   renderRoadmapTab(a);
+}
+
+// ── Threat Model ──────────────────────────────────────────────────────────
+async function runThreatModel() {
+  const btn    = document.getElementById('tm-btn');
+  const status = document.getElementById('tm-status');
+  btn.disabled = true;
+  btn.textContent = 'Generating…';
+  status.style.display = 'flex';
+  status.innerHTML = '<div class="ai-spinner"></div> Building MITRE ATLAS threat model — this takes about 15 seconds…';
+  document.getElementById('tm-results').style.display = 'none';
+
+  const meta = {
+    team:     document.getElementById('meta-team').value,
+    assessor: document.getElementById('meta-assessor').value,
+    date:     document.getElementById('meta-date').value,
+    server:   document.getElementById('meta-server').value,
+    location: document.getElementById('meta-location').value,
+  };
+
+  try {
+    const res = await fetch('/api/threat-model', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ meta, scores, checks, domains: DOMAINS, orgName: document.getElementById('brand-name').value, provider: aiProvider, model: aiModel, aiContext: getAiContext() })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Threat model generation failed');
+    threatModel = data.threatModel;
+    await saveState();
+    renderThreatModel(threatModel);
+    status.style.display = 'none';
+    showToast('Threat model generated', 'success');
+  } catch (err) {
+    status.innerHTML = `<span style="color:#dc2626">✕ ${err.message}</span>`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '✦ Re-generate Threat Model';
+  }
+}
+
+function renderThreatModel(tm) {
+  if (!tm) return;
+  document.getElementById('tm-results').style.display = '';
+
+  document.getElementById('tm-summary').textContent = tm.threat_summary || '';
+
+  const sevCls = s => ({ critical:'c', high:'h', medium:'m', low:'l' })[(s||'').toLowerCase()] || 'm';
+  const likelihoodColor = l => ({ High:'#dc2626', Medium:'#d97706', Low:'#059669' })[l] || '#64748b';
+  const coverageClass = c => ({ None:'tm-coverage-none', Partial:'tm-coverage-partial', Full:'tm-coverage-full' })[c] || '';
+
+  document.getElementById('tm-actors').innerHTML = (tm.threat_actors || []).map(a => `
+    <div class="tm-actor">
+      <div class="tm-actor-name">${a.name}</div>
+      <div class="tm-actor-meta">
+        <span class="sev-badge sev-${sevCls(a.likelihood === 'High' ? 'high' : a.likelihood === 'Low' ? 'low' : 'medium')}">${a.likelihood} likelihood</span>
+        <span style="font-size:10.5px;background:#f1f5f9;color:#475569;padding:2px 7px;border-radius:3px;font-weight:500">${a.sophistication}</span>
+      </div>
+      <div class="tm-actor-motivation">${a.motivation}</div>
+    </div>`).join('');
+
+  document.getElementById('tm-scenarios').innerHTML = (tm.attack_scenarios || []).map(s => {
+    const sc = sevCls(s.severity);
+    return `<div class="tm-scenario sev-${sc}">
+      <div class="tm-scenario-header">
+        <span class="sev-badge sev-${s.severity.toLowerCase()}">${s.severity}</span>
+        <span class="tm-scenario-name">${s.name}</span>
+        <span style="font-size:11px;color:#94a3b8">Likelihood: <span style="color:${likelihoodColor(s.likelihood)};font-weight:600">${s.likelihood}</span> · Impact: <span style="color:${likelihoodColor(s.impact)};font-weight:600">${s.impact}</span></span>
+      </div>
+      <div class="tm-scenario-desc">${s.description}</div>
+      ${s.exploits_gap ? `<div class="tm-scenario-gap">⚠️ ${s.exploits_gap}</div>` : ''}
+      <div class="tm-technique-tags">${(s.mitre_techniques || []).map(t => `<span class="tm-ttag" title="${t.tactic}: ${t.name}">${t.id}</span>`).join('')}</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('tm-matrix-body').innerHTML = (tm.technique_matrix || []).map(t => `
+    <tr>
+      <td>${t.domain}</td>
+      <td><span class="tm-ttag">${t.technique_id}</span></td>
+      <td>${t.technique_name}</td>
+      <td style="font-size:11px;color:#64748b">${t.tactic}</td>
+      <td style="color:${likelihoodColor(t.likelihood)};font-weight:600;font-size:12px">${t.likelihood}</td>
+      <td><span class="sev-badge sev-${t.severity.toLowerCase()}">${t.severity}</span></td>
+      <td class="${coverageClass(t.current_coverage)}">${t.current_coverage}</td>
+    </tr>`).join('');
+
+  document.getElementById('tm-mitigations').innerHTML = (tm.top_mitigations || []).map(m => {
+    const pc = sevCls(m.priority);
+    return `<div class="tm-mit pri-${pc}">
+      <div class="tm-mit-header">
+        <span class="tm-mit-id">${m.mitre_id}</span>
+        <span class="tm-mit-name">${m.name}</span>
+        <span class="sev-badge sev-${m.priority.toLowerCase()}">${m.priority}</span>
+      </div>
+      <div class="tm-mit-desc">${m.description}</div>
+      <div class="tm-mit-techniques">${(m.techniques_addressed || []).map(t => `<span class="tm-ttag">${t}</span>`).join('')}</div>
+    </div>`;
+  }).join('');
 }
 
 function renderRoadmapTab(a) {

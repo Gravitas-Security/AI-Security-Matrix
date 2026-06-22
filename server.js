@@ -347,6 +347,120 @@ Rules:
   }
 });
 
+// ── MITRE ATLAS Threat Model ───────────────────────────────────────────────
+app.post('/api/threat-model', async (req, res) => {
+  const provider = req.body.provider || 'anthropic';
+  const model    = req.body.model || '';
+
+  const keyMap = {
+    anthropic: process.env.ANTHROPIC_API_KEY,
+    openai:    process.env.OPENAI_API_KEY,
+    gemini:    process.env.GOOGLE_API_KEY,
+    azure:     process.env.AZURE_OPENAI_API_KEY,
+  };
+  if (!keyMap[provider]) {
+    return res.status(400).json({ error: `No API key configured for provider "${provider}". Set the appropriate environment variable and restart.` });
+  }
+
+  const { meta, scores, checks, domains, orgName, aiContext } = req.body;
+
+  const CMMC_NAMES = ['Basic Cyber Hygiene','Intermediate Cyber Hygiene','Good Cyber Hygiene','Proactive','Advanced / Progressive'];
+
+  const domainSummary = domains.map(d => {
+    const score = scores[d.id] ?? null;
+    const levelLabel = score ? `CMMC L${score} — ${CMMC_NAMES[score - 1]}` : 'Not scored';
+    const domainChecks = checks[d.id] || [];
+    const doneChecks   = d.checks.filter((_, i) => domainChecks[i] === 'yes');
+    const missedChecks = d.checks.filter((_, i) => domainChecks[i] !== 'yes');
+    return `
+### ${d.name} — ${levelLabel} (score: ${score ?? 0}/5)
+Current state: ${score ? d.levels[score - 1] : 'Not assessed'}
+Completed controls: ${doneChecks.length > 0 ? doneChecks.map(c => `- ${c}`).join('\n') : '- None'}
+Missing controls: ${missedChecks.length > 0 ? missedChecks.map(c => `- ${c}`).join('\n') : '- None'}
+Framework refs: OWASP: ${d.fw.owasp.refs[0]} | NIST: ${d.fw.nist.refs[0]} | ISO 42001: ${d.fw.iso.refs[0]}
+Risk: ${d.risk}`;
+  }).join('\n');
+
+  const totalScore = domains.reduce((sum, d) => sum + (scores[d.id] ?? 0), 0);
+  const maxScore = domains.length * 5;
+
+  const c = aiContext || {};
+  const contextLines = [
+    c.architecture && `Architecture & Tech Stack: ${c.architecture}`,
+    c.mitigations  && `Existing Mitigations: ${c.mitigations}`,
+    c.compliance   && `Compliance Requirements: ${c.compliance}`,
+    c.risks        && `Known Risks & Exceptions: ${c.risks}`,
+    c.notes        && `Additional Notes: ${c.notes}`,
+  ].filter(Boolean);
+  const additionalContext = contextLines.length ? `\n\n## Additional Context\n${contextLines.join('\n')}` : '';
+
+  const prompt = `You are a senior AI security architect${orgName ? ` at ${orgName}` : ''} performing a MITRE ATLAS threat model for an AI system security assessment.
+
+## Assessment Context
+- Team / Product: ${meta.team || 'Not specified'}
+- AI System / Product: ${meta.server || 'Not specified'}
+- Owner / Repository: ${meta.location || 'Not specified'}
+- Assessment Date: ${meta.date || 'Not specified'}
+- Assessor: ${meta.assessor || 'Not specified'}
+- Overall Score: ${totalScore} / ${maxScore} (${Math.round(totalScore/maxScore*100)}%)
+
+## Domain Scores (gaps = domains scoring below 4)
+${domainSummary}
+${additionalContext}
+
+## Instructions
+Generate a MITRE ATLAS threat model for this AI system based on the assessment gaps above. MITRE ATLAS (Adversarial Threat Landscape for Artificial-Intelligence Systems) covers AI-specific attack tactics and techniques.
+
+Return a JSON object with EXACTLY this structure (pure JSON, no markdown fences):
+{
+  "threat_summary": "2-3 sentence overview of the AI threat landscape given the assessment scores",
+  "threat_actors": [
+    { "name": "string", "motivation": "string", "sophistication": "Low|Medium|High|Nation-state", "likelihood": "Low|Medium|High" }
+  ],
+  "attack_scenarios": [
+    {
+      "name": "string",
+      "description": "2-3 sentence description of the attack chain",
+      "severity": "Critical|High|Medium|Low",
+      "mitre_techniques": [{ "id": "AML.Txxxx.xxx or AML.Txxxx", "name": "string", "tactic": "string" }],
+      "affected_domains": ["domain name"],
+      "likelihood": "Low|Medium|High",
+      "impact": "Low|Medium|High",
+      "exploits_gap": "1 sentence explaining which specific missing control this exploits"
+    }
+  ],
+  "technique_matrix": [
+    { "domain": "string", "technique_id": "AML.Txxxx", "technique_name": "string", "tactic": "string", "likelihood": "Low|Medium|High", "severity": "Critical|High|Medium|Low", "current_coverage": "None|Partial|Full" }
+  ],
+  "top_mitigations": [
+    { "mitre_id": "AML.Mxxxx", "name": "string", "description": "1-2 sentence description", "techniques_addressed": ["AML.Txxxx"], "priority": "Critical|High|Medium|Low" }
+  ]
+}
+
+Rules:
+- 3-5 threat actors focused on AI-specific adversaries: model thieves, data poisoners, adversarial input attackers, insider threats, nation-state AI espionage
+- 3-5 attack scenarios mapped to actual MITRE ATLAS techniques (use real AML.T IDs)
+- technique_matrix: only include domains scoring below 4 — map each weak domain to the most relevant ATLAS techniques
+- 4-6 top_mitigations using real ATLAS mitigation IDs (AML.M IDs)
+- Use real MITRE ATLAS technique IDs (AML.T0000 format) and mitigation IDs (AML.M0000 format)
+- Return pure JSON, no markdown fences`;
+
+  try {
+    const result = await callLLM(provider, model, prompt);
+    if (result.truncated) console.warn('Threat model call hit token limit');
+
+    const s = result.text.trim().replace(/^```json\s*/,'').replace(/^```\s*/,'').replace(/\s*```$/,'');
+    let threatModel;
+    try { threatModel = JSON.parse(s); }
+    catch { threatModel = JSON.parse(recoverTruncatedJson(s)); }
+
+    res.json({ ok: true, threatModel });
+  } catch (err) {
+    console.error('Threat model error:', err);
+    res.status(500).json({ error: `Threat model generation failed: ${err.message}. Try again.` });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`AI Security Matrix running at http://localhost:${PORT}`);
   const configured = [
